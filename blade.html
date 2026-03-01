@@ -1378,9 +1378,9 @@ function drawCharacter(ent, isGuard) {
 
   const isMoving = ent.state === 'run' || ent.state === 'walk';
   const walkScale = ent.state === 'walk' ? 0.4 : 1;
-  const bob = isMoving ? Math.sin(ent.animFrame * Math.PI) * 3 * walkScale : 0;
-  const legAnim = isMoving ? Math.sin(ent.animFrame * Math.PI) * walkScale : 0;
-  const armSwing = isMoving ? Math.sin(ent.animFrame * Math.PI) * walkScale : 0;
+  const bob = isMoving ? Math.sin(ent.animFrame * Math.PI / 2) * 3 * walkScale : 0;
+  const legAnim = isMoving ? Math.sin(ent.animFrame * Math.PI / 2) * walkScale : 0;
+  const armSwing = isMoving ? Math.sin(ent.animFrame * Math.PI / 2) * walkScale : 0;
   const breathe = Math.sin(frameCount * 0.06) * 0.5; // subtle idle breathing
 
   // ── Shadow on ground ──
