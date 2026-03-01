@@ -46,7 +46,8 @@
     background: rgba(0,0,0,0.88);
     color: #d4a44a;
     z-index: 10;
-    overflow: hidden;
+    overflow-y: auto;
+    padding: 8px 0;
   }
   #gameOverScreen h1, #winScreen h1, #charSelectScreen h1 {
     font-size: 32px;
@@ -209,16 +210,16 @@
   }
 
   @media (max-height: 600px) and (pointer: coarse) {
-    #startScreen .title-logo canvas { width: 60px; height: 40px; margin-bottom: 4px; }
+    #startScreen .title-logo canvas { display: none; }
     #startScreen .title-main { font-size: 18px; letter-spacing: 4px; }
     #startScreen .title-accent { font-size: 11px; letter-spacing: 6px; }
     #startScreen .title-of { font-size: 9px; letter-spacing: 8px; }
     #startScreen .title-logo { margin-bottom: 6px; }
-    #startScreen .subtitle { font-size: 10px; margin-bottom: 10px; margin-top: 2px; }
-    .controls-info { font-size: 10px; line-height: 1.8; }
-    .blink { font-size: 12px; margin-top: 6px; }
+    #startScreen .subtitle { font-size: 10px; margin-bottom: 6px; margin-top: 2px; }
+    .controls-info { font-size: 9px; line-height: 1.5; }
+    .blink { font-size: 13px; margin-top: 8px; }
     #gameOverScreen h1, #winScreen h1, #charSelectScreen h1 { font-size: 22px; margin-bottom: 8px; }
-    .subtitle { font-size: 11px; margin-bottom: 12px; }
+    .subtitle { font-size: 11px; margin-bottom: 8px; }
   }
 </style>
 </head>
@@ -788,6 +789,7 @@ function initEntities() {
     hurtCooldown: 0,
     animFrame: 0,
     animTimer: 0,
+    runTimer: 0,
     swordOut: false,
   };
 
@@ -820,6 +822,7 @@ function createGuard(x, behavior, cfg) {
     hurtCooldown: 0,
     animFrame: 0,
     animTimer: 0,
+    runTimer: 0,
     behavior: behavior,
     patrolDir: -1,
     patrolOriginX: x,
@@ -941,15 +944,15 @@ function updatePlayer() {
     if (keys['ArrowLeft']) {
       p.vx = -speed;
       p.facing = -1;
-      if (p.grounded && p.state !== 'jump') p.state = shifting ? 'walk' : 'run';
+      if (p.grounded && p.state !== 'jump') { p.state = shifting ? 'walk' : 'run'; p.runTimer++; }
     } else if (keys['ArrowRight']) {
       p.vx = speed;
       p.facing = 1;
-      if (p.grounded && p.state !== 'jump') p.state = shifting ? 'walk' : 'run';
+      if (p.grounded && p.state !== 'jump') { p.state = shifting ? 'walk' : 'run'; p.runTimer++; }
     } else {
       p.vx *= FRICTION;
       if (Math.abs(p.vx) < 0.1) p.vx = 0;
-      if (p.grounded) p.state = 'idle';
+      if (p.grounded) { p.state = 'idle'; p.runTimer = 0; }
     }
 
     if (keys['Space'] && p.grounded) {
@@ -1085,6 +1088,7 @@ function updateGuard(g) {
     if (Math.abs(g.x - g.patrolOriginX) > g.patrolRange) g.patrolDir *= -1;
   }
 
+  if (g.state === 'run') g.runTimer++; else g.runTimer = 0;
   if (g.state === 'block' && g.stateTimer > 15) { g.state = 'idle'; g.stateTimer = 0; }
   if (g.animTimer > 8) { g.animFrame = (g.animFrame + 1) % 4; g.animTimer = 0; }
   moveEntity(g);
@@ -1377,10 +1381,11 @@ function drawCharacter(ent, isGuard) {
   if (ent.hurtCooldown > 20) ctx.globalAlpha = 0.5;
 
   const isMoving = ent.state === 'run' || ent.state === 'walk';
-  const walkScale = ent.state === 'walk' ? 0.4 : 1;
-  const bob = isMoving ? Math.sin(ent.animFrame * Math.PI / 2) * 3 * walkScale : 0;
-  const legAnim = isMoving ? Math.sin(ent.animFrame * Math.PI / 2) * walkScale : 0;
-  const armSwing = isMoving ? Math.sin(ent.animFrame * Math.PI / 2) * walkScale : 0;
+  const walkScale = ent.state === 'walk' ? 0.5 : 1;
+  const runPhase = ent.runTimer * 0.25;
+  const bob = isMoving ? Math.sin(runPhase * 2) * 2 : 0;
+  const legAnim = isMoving ? Math.sin(runPhase) * walkScale : 0;
+  const armSwing = isMoving ? Math.sin(runPhase) * walkScale : 0;
   const breathe = Math.sin(frameCount * 0.06) * 0.5; // subtle idle breathing
 
   // ── Shadow on ground ──
@@ -1420,7 +1425,7 @@ function drawCharacter(ent, isGuard) {
   // BACK LEG (drawn behind body)
   // ════════════════════════════════════════════════
   {
-    const backLeg = -legAnim * 8;
+    const backLeg = -legAnim * 12;
     ctx.fillStyle = pantsShade;
     if (ent.state === 'jump') {
       ctx.fillRect(5, 50 + bob, 6, 10);
@@ -1452,7 +1457,7 @@ function drawCharacter(ent, isGuard) {
   // LEGS (front leg)
   // ════════════════════════════════════════════════
   {
-    const frontLeg = legAnim * 8;
+    const frontLeg = legAnim * 12;
     ctx.fillStyle = pants;
     if (ent.state === 'jump') {
       // Legs tucked
