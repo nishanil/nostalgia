@@ -775,6 +775,7 @@ function createGuard(x, behavior, cfg) {
     attackChance: cfg ? cfg.attackChance : 0.03,
     blockChance: cfg ? cfg.blockChance : 0.4,
     alive: true,
+    deathTimer: 0,
     swordOut: true,
   };
 }
@@ -977,7 +978,10 @@ function checkSwordHit(attacker, targets) {
 
 // ─── GUARD AI ──────────────────────────────────────────
 function updateGuard(g) {
-  if (!g.alive) return;
+  if (!g.alive) {
+    g.deathTimer++;
+    return;
+  }
   g.stateTimer++;
   g.animTimer++;
   if (g.attackCooldown > 0) g.attackCooldown--;
@@ -1870,7 +1874,18 @@ function draw() {
   ctx.clearRect(0, 0, W, H);
   if (gameState === 'playing' || gameState === 'gameover' || gameState === 'win' || gameState === 'levelcomplete') {
     drawLevel();
-    for (const g of guards) { if (!g.alive) drawCharacter(g, true); }
+    for (const g of guards) {
+      if (!g.alive) {
+        if (g.deathTimer < 60) {
+          // Flicker: alternate visibility, fade out over time
+          if (g.deathTimer % 6 < 3) {
+            ctx.globalAlpha = 1 - g.deathTimer / 60;
+            drawCharacter(g, true);
+            ctx.globalAlpha = 1;
+          }
+        }
+      }
+    }
     for (const g of guards) { if (g.alive) drawCharacter(g, true); }
     drawCharacter(player, false);
     drawParticles();
