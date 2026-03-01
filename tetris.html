@@ -306,6 +306,50 @@
 <div id="footer">Built with <span class="heart">❤️</span> for Ami &amp; Pree from Nish &amp; Copilot</div>
 
 <script>
+// ─── Sound Engine (Web Audio API) ─────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(freq, duration, type = 'square', volume = 0.08) {
+  ensureAudio();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+const Sound = {
+  move()    { playTone(200, 0.06); },
+  rotate()  { playTone(300, 0.08); },
+  drop()    { playTone(100, 0.15, 'triangle', 0.12); },
+  lock()    { playTone(150, 0.1, 'triangle', 0.06); },
+  lineClear(count) {
+    ensureAudio();
+    const notes = [523, 659, 784, 1047];
+    for (let i = 0; i < Math.min(count, 4); i++) {
+      setTimeout(() => playTone(notes[i], 0.12, 'square', 0.07), i * 60);
+    }
+  },
+  gameOver() {
+    const notes = [400, 350, 300, 200];
+    notes.forEach((f, i) => setTimeout(() => playTone(f, 0.2, 'sawtooth', 0.06), i * 150));
+  },
+  start() {
+    const notes = [262, 330, 392, 523];
+    notes.forEach((f, i) => setTimeout(() => playTone(f, 0.1, 'square', 0.06), i * 80));
+  }
+};
+
 // ─── Canvas Setup ─────────────────────────────────────────
 const boardCanvas = document.getElementById('board');
 const boardCtx = boardCanvas.getContext('2d');
@@ -415,6 +459,7 @@ function clearLines() {
     }
   }
   if (cleared > 0) {
+    Sound.lineClear(cleared);
     const points = [0, 40, 100, 300, 1200];
     score += (points[cleared] || 1200) * level;
     lines += cleared;
@@ -439,6 +484,7 @@ function moveLeft() {
   if (!gameRunning || paused || !currentPiece) return;
   if (isValid(currentPiece.shape, currentPiece.row, currentPiece.col - 1)) {
     currentPiece.col--;
+    Sound.move();
   }
 }
 
@@ -446,6 +492,7 @@ function moveRight() {
   if (!gameRunning || paused || !currentPiece) return;
   if (isValid(currentPiece.shape, currentPiece.row, currentPiece.col + 1)) {
     currentPiece.col++;
+    Sound.move();
   }
 }
 
@@ -457,6 +504,7 @@ function moveDown() {
     return true;
   }
   // Lock piece
+  Sound.lock();
   placePiece();
   clearLines();
   spawnPiece();
@@ -471,6 +519,7 @@ function hardDrop() {
     dropped++;
   }
   score += dropped * 2;
+  Sound.drop();
   placePiece();
   clearLines();
   spawnPiece();
@@ -487,6 +536,7 @@ function rotate() {
     if (isValid(newShape, currentPiece.row, currentPiece.col + kick)) {
       currentPiece.shape = newShape;
       currentPiece.col += kick;
+      Sound.rotate();
       return;
     }
   }
@@ -728,6 +778,7 @@ function updateHUD() {
 
 // ─── Game Flow ────────────────────────────────────────────
 function startGame() {
+  Sound.start();
   initGrid();
   score = 0;
   lines = 0;
@@ -745,6 +796,7 @@ function startGame() {
 }
 
 function gameOver() {
+  Sound.gameOver();
   gameRunning = false;
   currentPiece = null;
   if (score > highScore) {

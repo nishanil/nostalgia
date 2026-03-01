@@ -319,6 +319,46 @@
 <div id="footer">Built with <span class="heart">❤️</span> for Ami &amp; Pree from Nish &amp; Copilot</div>
 
 <script>
+// ─── Sound Engine (Web Audio API) ─────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(freq, duration, type = 'square', volume = 0.08) {
+  ensureAudio();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+const Sound = {
+  select() { playTone(500, 0.04, 'sine', 0.05); },
+  validWord(len) {
+    const base = 523;
+    const count = Math.min(len, 5);
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => playTone(base + i * 80, 0.08, 'sine', 0.08), i * 50);
+    }
+  },
+  invalidWord() { playTone(150, 0.2, 'sawtooth', 0.06); },
+  start() {
+    [262, 330, 392, 523].forEach((f, i) => setTimeout(() => playTone(f, 0.1, 'square', 0.06), i * 80));
+  },
+  end() {
+    [523, 440, 349, 262].forEach((f, i) => setTimeout(() => playTone(f, 0.15, 'triangle', 0.06), i * 120));
+  }
+};
+
 // ─── Word List ────────────────────────────────────────────
 // Curated common English words (3-8 letters)
 const WORDS = new Set(`ace,act,add,age,ago,aid,aim,air,all,and,ant,any,ape,arc,are,ark,arm,art,ash,ask,ate,awe,axe,
@@ -582,10 +622,12 @@ function submitWord() {
     foundWords.add(word);
     const pts = wordScore(word);
     score += pts;
+    Sound.validWord(word.length);
     updateHUD();
     addWordTag(word, pts);
   } else {
     flashCells('invalid');
+    Sound.invalidWord();
   }
 
   setTimeout(clearSelection, 250);
@@ -639,6 +681,7 @@ function handleDragStart(x, y) {
   const idx = getCellFromPoint(x, y);
   if (idx >= 0) {
     selectedCells = [idx];
+    Sound.select();
     updateSelection();
   }
 }
@@ -663,6 +706,7 @@ function handleDragMove(x, y) {
   if (!isAdjacent(selectedCells[selectedCells.length - 1], idx)) return;
 
   selectedCells.push(idx);
+  Sound.select();
   updateSelection();
 }
 
@@ -822,6 +866,7 @@ function startTimer() {
 
 // ─── Game Flow ────────────────────────────────────────────
 function startGame() {
+  Sound.start();
   score = 0;
   timeLeft = 120;
   foundWords = new Set();
@@ -841,6 +886,7 @@ function startGame() {
 }
 
 function endGame() {
+  Sound.end();
   gameActive = false;
   isDragging = false;
   clearSelection();

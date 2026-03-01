@@ -251,6 +251,53 @@
 <button id="touchRight">▶</button>
 
 <script>
+// ─── Sound Engine (Web Audio API) ─────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(freq, duration, type = 'square', volume = 0.08) {
+  ensureAudio();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(volume, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+const Sound = {
+  paddleHit()  { playTone(440, 0.06, 'square', 0.06); },
+  wallBounce() { playTone(300, 0.04, 'square', 0.04); },
+  brickBreak() { playTone(600, 0.1, 'square', 0.07); },
+  brickHit()   { playTone(400, 0.06, 'triangle', 0.05); },
+  powerUp() {
+    [523, 659, 784].forEach((f, i) => setTimeout(() => playTone(f, 0.08, 'sine', 0.08), i * 50));
+  },
+  loseLife() {
+    [350, 250, 180].forEach((f, i) => setTimeout(() => playTone(f, 0.15, 'sawtooth', 0.06), i * 120));
+  },
+  levelComplete() {
+    [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playTone(f, 0.12, 'square', 0.07), i * 80));
+  },
+  gameOver() {
+    [400, 350, 300, 200].forEach((f, i) => setTimeout(() => playTone(f, 0.2, 'sawtooth', 0.06), i * 150));
+  },
+  win() {
+    [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => playTone(f, 0.15, 'square', 0.07), i * 100));
+  },
+  start() {
+    [262, 330, 392, 523].forEach((f, i) => setTimeout(() => playTone(f, 0.1, 'square', 0.06), i * 80));
+  }
+};
+
 // ─── Canvas Setup ─────────────────────────────────────────
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -573,9 +620,9 @@ function update() {
     ball.y += ball.dy;
 
     // Wall collisions
-    if (ball.x - ball.r <= 0) { ball.x = ball.r; ball.dx = Math.abs(ball.dx); }
-    if (ball.x + ball.r >= W) { ball.x = W - ball.r; ball.dx = -Math.abs(ball.dx); }
-    if (ball.y - ball.r <= 0) { ball.y = ball.r; ball.dy = Math.abs(ball.dy); }
+    if (ball.x - ball.r <= 0) { ball.x = ball.r; ball.dx = Math.abs(ball.dx); Sound.wallBounce(); }
+    if (ball.x + ball.r >= W) { ball.x = W - ball.r; ball.dx = -Math.abs(ball.dx); Sound.wallBounce(); }
+    if (ball.y - ball.r <= 0) { ball.y = ball.r; ball.dy = Math.abs(ball.dy); Sound.wallBounce(); }
 
     // Ball fell below
     if (ball.y - ball.r > H) {
@@ -597,6 +644,7 @@ function update() {
       ball.dx = Math.sin(angle) * speed;
       ball.dy = -Math.abs(Math.cos(angle) * speed);
       ball.y = paddle.y - ball.r - 1;
+      Sound.paddleHit();
     }
 
     // Brick collisions
@@ -615,10 +663,12 @@ function update() {
             spawnPowerUp(b.x + b.w / 2, b.y + b.h / 2);
             score += b.maxHp * 10 * level;
             bricks.splice(i, 1);
+            Sound.brickBreak();
           } else {
             // Dim color for damaged bricks
             b.color = shadeColor(b.color, -30);
             score += 5 * level;
+            Sound.brickHit();
           }
         }
 
@@ -645,6 +695,7 @@ function update() {
       gameOver();
       return;
     }
+    Sound.loseLife();
     paddle.w = 80;
     resetBall();
     const speed = levels[Math.min(level - 1, levels.length - 1)].speedMult * 5;
@@ -663,6 +714,7 @@ function update() {
       p.y < paddle.y + paddle.h
     ) {
       activatePowerUp(p.type);
+      Sound.powerUp();
       powerUps.splice(i, 1);
       continue;
     }
@@ -866,6 +918,7 @@ function hideAllScreens() {
 }
 
 function startGame() {
+  Sound.start();
   score = 0;
   lives = 3;
   level = 1;
@@ -880,6 +933,7 @@ function startGame() {
 }
 
 function levelComplete() {
+  Sound.levelComplete();
   gameRunning = false;
   document.getElementById('levelCompleteText').textContent = `Level ${level} Cleared!`;
   document.getElementById('levelScoreText').textContent = `Score: ${score}`;
@@ -899,6 +953,7 @@ function nextLevel() {
 }
 
 function gameOver() {
+  Sound.gameOver();
   gameRunning = false;
   if (score > highScore) {
     highScore = score;
@@ -910,6 +965,7 @@ function gameOver() {
 }
 
 function winGame() {
+  Sound.win();
   gameRunning = false;
   if (score > highScore) {
     highScore = score;
