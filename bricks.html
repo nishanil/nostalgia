@@ -461,16 +461,22 @@ function spawnPowerUp(x, y) {
   powerUps.push({ x, y, w: 24, h: 14, dy: 2.5, type, color: POWERUP_COLORS[type] });
 }
 
+// Power-up timer tracking
+let wideTimer = null;
+let fireTimer = null;
+
 function activatePowerUp(type) {
   switch (type) {
     case 'wide':
       paddle.w = Math.min(160, paddle.w + 30);
       paddle.x = Math.min(paddle.x, W - paddle.w);
-      setTimeout(() => { paddle.w = 80; }, 10000);
+      if (wideTimer) clearTimeout(wideTimer);
+      wideTimer = setTimeout(() => { paddle.w = 80; wideTimer = null; }, 10000);
       break;
     case 'fire':
       balls.forEach(b => { b.fire = true; b.color = '#f80'; });
-      setTimeout(() => { balls.forEach(b => { b.fire = false; b.color = '#fff'; }); }, 8000);
+      if (fireTimer) clearTimeout(fireTimer);
+      fireTimer = setTimeout(() => { balls.forEach(b => { b.fire = false; b.color = '#fff'; }); fireTimer = null; }, 8000);
       break;
     case 'multi':
       const newBalls = [];
@@ -917,8 +923,14 @@ function hideAllScreens() {
   });
 }
 
+function clearPowerUpTimers() {
+  if (wideTimer) { clearTimeout(wideTimer); wideTimer = null; }
+  if (fireTimer) { clearTimeout(fireTimer); fireTimer = null; }
+}
+
 function startGame() {
   Sound.start();
+  clearPowerUpTimers();
   score = 0;
   lives = 3;
   level = 1;
@@ -941,6 +953,7 @@ function levelComplete() {
 }
 
 function nextLevel() {
+  clearPowerUpTimers();
   level++;
   paddle.w = 80;
   paddle.x = (W - paddle.w) / 2;
