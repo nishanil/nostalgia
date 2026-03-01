@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Nostalgia 🎮</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Courier New', monospace;
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  h1 {
+    font-size: 32px;
+    color: #ff00ff;
+    text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff55;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .subtitle {
+    color: #0ff;
+    font-size: 14px;
+    text-shadow: 0 0 10px #0ff;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+
+  .games {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: center;
+    max-width: 600px;
+  }
+
+  .game-card {
+    width: 240px;
+    background: rgba(255,255,255,0.04);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-decoration: none;
+  }
+
+  .game-card:hover {
+    border-color: #0ff;
+    box-shadow: 0 0 30px rgba(0,255,255,0.2);
+    transform: translateY(-4px);
+  }
+
+  .game-card .icon {
+    font-size: 56px;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .game-card .name {
+    font-size: 20px;
+    color: #fff;
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+
+  .game-card .desc {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.5;
+  }
+
+  .game-card.bricks { border-color: rgba(255,0,255,0.3); }
+  .game-card.bricks:hover { border-color: #ff00ff; box-shadow: 0 0 30px rgba(255,0,255,0.3); }
+  .game-card.bricks .name { color: #ff69b4; }
+
+  .game-card.tetris { border-color: rgba(0,255,100,0.3); }
+  .game-card.tetris:hover { border-color: #0f0; box-shadow: 0 0 30px rgba(0,255,0,0.2); }
+  .game-card.tetris .name { color: #8bac0f; }
+
+  .game-card.words { border-color: rgba(232,167,53,0.3); }
+  .game-card.words:hover { border-color: #e8a735; box-shadow: 0 0 30px rgba(232,167,53,0.2); }
+  .game-card.words .name { color: #e8a735; }
+
+  #footer {
+    color: #555;
+    font-size: 11px;
+    margin-top: 40px;
+    text-align: center;
+  }
+
+  #footer .heart { color: #f55; }
+</style>
+</head>
+<body>
+
+<h1>🎮 Nostalgia</h1>
+<p class="subtitle">Pick a game!</p>
+
+<div class="games">
+  <a class="game-card bricks" href="bricks.html">
+    <span class="icon">🧱</span>
+    <div class="name">Brick Breaker</div>
+    <div class="desc">Break all the bricks!<br>10 levels with power-ups<br>Classic Breakout action</div>
+  </a>
+
+  <a class="game-card tetris" href="tetris.html">
+    <span class="icon">🟩</span>
+    <div class="name">Tetris</div>
+    <div class="desc">The original classic!<br>Stack and clear lines<br>Retro Game Boy style</div>
+  </a>
+
+  <a class="game-card words" href="words.html">
+    <span class="icon">🔤</span>
+    <div class="name">Word Trail</div>
+    <div class="desc">Find hidden words!<br>Trace paths through letters<br>Beat the clock</div>
+  </a>
+</div>
+
+<div id="footer">Built with <span class="heart">❤️</span> for Ami &amp; Pree from Nish &amp; Copilot</div>
+
+</body>
+</html>
