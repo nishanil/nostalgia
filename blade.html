@@ -1,0 +1,2227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nostalgia - Blade of the Lost Prince ⚔️</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 100vh;
+    font-family: monospace;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #gameWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100vh;
+  }
+  #gameContainer {
+    position: relative;
+  }
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+    touch-action: none;
+  }
+  #startScreen, #gameOverScreen, #winScreen, #charSelectScreen {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.88);
+    color: #d4a44a;
+    z-index: 10;
+  }
+  #gameOverScreen h1, #winScreen h1, #charSelectScreen h1 {
+    font-size: 32px;
+    text-transform: uppercase;
+    letter-spacing: 6px;
+    margin-bottom: 16px;
+    text-shadow: 2px 2px #000;
+  }
+  #startScreen .title-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  #startScreen .title-logo canvas {
+    margin-bottom: 12px;
+  }
+  #startScreen .title-main {
+    font-size: 28px;
+    text-transform: uppercase;
+    letter-spacing: 8px;
+    color: #d4a44a;
+    text-shadow: 2px 2px 6px rgba(0,0,0,0.8), 0 0 20px rgba(212,164,74,0.3);
+    text-align: center;
+    line-height: 1.3;
+  }
+  #startScreen .title-accent {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 12px;
+    color: #8a7232;
+    margin-bottom: 2px;
+  }
+  #startScreen .title-of {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 14px;
+    color: #6a6a6a;
+    margin: 2px 0;
+  }
+  .subtitle {
+    color: #aaa;
+    font-size: 13px;
+    margin-bottom: 28px;
+  }
+  #startScreen .subtitle {
+    color: #777;
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 6px;
+    margin-bottom: 28px;
+  }
+  .controls-info {
+    color: #888;
+    font-size: 12px;
+    line-height: 2.2;
+    text-align: center;
+  }
+  .controls-info span {
+    color: #d4a44a;
+  }
+  .blink {
+    animation: blink 1s infinite;
+    color: #fff;
+    font-size: 14px;
+    margin-top: 28px;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+  #charOptions {
+    display: flex;
+    flex-direction: row;
+    gap: 32px;
+    margin: 20px 0;
+  }
+  .char-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 18px;
+    border: 3px solid #555;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .char-option.selected {
+    border-color: #d4a44a;
+    box-shadow: 0 0 12px rgba(212, 164, 74, 0.4);
+  }
+  .char-option canvas {
+    margin-bottom: 8px;
+  }
+  .char-option .char-label {
+    color: #ccc;
+    font-size: 14px;
+    font-family: monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .char-option.selected .char-label {
+    color: #d4a44a;
+  }
+  .hidden { display: none !important; }
+
+  /* ─── Touch Controls ─────────────────────────────── */
+  #touchControls {
+    display: none;
+    width: 100%;
+    max-width: 640px;
+    padding: 12px 16px;
+    justify-content: space-between;
+    align-items: center;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .touch-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .touch-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(100, 100, 140, 0.35);
+    border: 2px solid rgba(160, 160, 200, 0.4);
+    color: rgba(200, 200, 220, 0.85);
+    font-family: monospace;
+    font-weight: bold;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: pointer;
+    transition: background 0.08s;
+  }
+  .touch-btn:active, .touch-btn.active {
+    background: rgba(160, 140, 80, 0.5);
+    border-color: rgba(212, 164, 74, 0.7);
+    color: #d4a44a;
+  }
+  .touch-dpad {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    font-size: 26px;
+  }
+  .touch-action {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+<a id="backBtn" href="index.html" style="position:fixed;top:10px;left:10px;background:rgba(255,150,50,0.2);border:1px solid #f96;color:#f96;font-family:monospace;font-size:14px;padding:6px 14px;border-radius:4px;cursor:pointer;z-index:200;text-decoration:none;">◀ Games</a>
+<div id="gameWrapper">
+  <div id="gameContainer">
+    <canvas id="game" width="640" height="400"></canvas>
+
+    <div id="startScreen">
+      <div class="title-logo">
+        <canvas id="logoCanvas" width="120" height="80"></canvas>
+        <span class="title-accent">Blade</span>
+        <span class="title-of">of the</span>
+        <span class="title-main">Lost Prince</span>
+      </div>
+      <p class="subtitle">Escape the Dungeon</p>
+      <div class="controls-info" id="controlsDesktop">
+        <span>Arrow Keys</span> — Move<br>
+        <span>Shift + Arrow</span> — Walk (slow)<br>
+        <span>Space</span> — Jump<br>
+        <span>Enter</span> — Attack<br>
+        <span>S</span> — Block
+      </div>
+      <div class="controls-info hidden" id="controlsMobile">
+        Use the on-screen buttons below<br>
+        <span>D-Pad</span> — Move &nbsp; <span>JUMP</span> — Jump<br>
+        <span>ATK</span> — Attack &nbsp; <span>BLK</span> — Block
+      </div>
+      <p class="blink" id="startPrompt">Press ENTER to Start</p>
+    </div>
+
+    <div id="charSelectScreen" class="hidden">
+      <h1>Choose Your Hero</h1>
+      <div id="charOptions">
+        <div class="char-option selected" id="charOptionPrince" data-char="prince">
+          <canvas id="previewPrince" width="60" height="90"></canvas>
+          <span class="char-label">Jack</span>
+        </div>
+        <div class="char-option" id="charOptionPrincess" data-char="princess">
+          <canvas id="previewPrincess" width="60" height="90"></canvas>
+          <span class="char-label">Rose</span>
+        </div>
+      </div>
+      <p class="blink" id="charSelectPrompt">Press ENTER to Confirm</p>
+    </div>
+
+    <div id="gameOverScreen" class="hidden">
+      <h1>You Died</h1>
+      <p class="subtitle">The dungeon claims another soul...</p>
+      <p class="blink" id="retryPrompt">Press ENTER to Retry</p>
+    </div>
+
+    <div id="winScreen" class="hidden">
+      <h1>Freedom!</h1>
+      <p class="subtitle">You have escaped the dungeon!</p>
+      <p class="blink" id="playAgainPrompt">Press ENTER to Play Again</p>
+    </div>
+  </div>
+
+  <div id="touchControls">
+    <div class="touch-group">
+      <div class="touch-btn touch-dpad" data-key="ArrowLeft">&#9664;</div>
+      <div class="touch-btn touch-dpad" data-key="ArrowRight">&#9654;</div>
+    </div>
+    <div class="touch-group">
+      <div class="touch-btn touch-action" data-key="Space">JUMP</div>
+      <div class="touch-btn touch-action" data-key="Enter">ATK</div>
+      <div class="touch-btn touch-action" data-key="KeyS">BLK</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width;
+const H = canvas.height;
+
+// ─── TOUCH / MOBILE DETECTION ─────────────────────────
+const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+if (isTouchDevice) {
+  document.getElementById('touchControls').style.display = 'flex';
+  document.getElementById('controlsDesktop').classList.add('hidden');
+  document.getElementById('controlsMobile').classList.remove('hidden');
+  document.getElementById('startPrompt').textContent = 'Tap to Start';
+  document.getElementById('retryPrompt').textContent = 'Tap to Retry';
+  document.getElementById('playAgainPrompt').textContent = 'Tap to Play Again';
+  document.getElementById('charSelectPrompt').textContent = 'Tap to Confirm';
+}
+
+// ─── RESPONSIVE CANVAS SCALING ────────────────────────
+function resizeCanvas() {
+  const container = document.getElementById('gameContainer');
+  const wrapper = document.getElementById('gameWrapper');
+  const touchEl = document.getElementById('touchControls');
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // Reserve space for touch controls on touch devices
+  const touchHeight = isTouchDevice ? 100 : 0;
+  const availH = vh - touchHeight;
+
+  // Scale canvas to fit width, constrained by available height
+  let scale = vw / W;
+  if (H * scale > availH) {
+    scale = availH / H;
+  }
+
+  canvas.style.width = Math.floor(W * scale) + 'px';
+  canvas.style.height = Math.floor(H * scale) + 'px';
+
+  // Size the touch controls to match canvas width
+  if (isTouchDevice) {
+    touchEl.style.maxWidth = Math.floor(W * scale) + 'px';
+  }
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// ─── COLORS — Authentic PoP dungeon palette ───────────
+const COL = {
+  // Stone wall shades (blue-gray like original)
+  stone1: '#9a9ebb',  // lightest stone face
+  stone2: '#8488aa',  // medium stone
+  stone3: '#6e7299',  // darker stone
+  stone4: '#5a5e88',  // darkest stone face
+  mortar: '#3a3c58',  // gaps between stones
+  mortarDark: '#2e3048', // deep mortar
+
+  // Floor
+  floorTop: '#8a8eaa',    // top surface of floor
+  floorFace: '#5a5e78',   // front edge face of floor
+  floorFaceDark: '#484a66', // bottom of front edge
+  floorEdge: '#a0a4c0',   // highlight edge at top of floor
+
+  // Corridor / background
+  corridorBg: '#0a0a14',    // very dark corridor
+  corridorWall: '#181828',   // subtle back wall
+  dripLine: '#222238',      // vertical drip lines on back wall
+
+  // Pillar
+  pillarLight: '#7a7e9a',
+  pillarMid: '#585c78',
+  pillarDark: '#404460',
+
+  // Torch
+  torchBracket: '#666680',
+  torchHandle: '#8B7020',
+  fire1: '#cc4400',
+  fire2: '#ee7700',
+  fire3: '#ffaa22',
+  fire4: '#ffdd66',
+
+  // Characters
+  skinTone: '#d8a878',
+  princeTunic: '#e8e0d0',
+  princeHair: '#2a1808',
+  princePants: '#c8c0b0',
+  guardTunic: '#9855aa',
+  guardPants: '#7a4090',
+  guardSkin: '#c08858',
+  guardHair: '#882200',
+  swordBlade: '#c8d0dd',
+  swordHilt: '#8B7020',
+
+  // Princess
+  princessTunic: '#4a8db5',
+  princessHair: '#5c2a0e',
+  princessPants: '#3a6a8a',
+
+  // HUD
+  hpFull: '#cc2222',
+  hpBg: '#222',
+  exitGlow: '#ffdd44',
+};
+
+// ─── GAME STATE ────────────────────────────────────────
+let gameState = 'start';
+let selectedCharacter = 'prince'; // 'prince' or 'princess'
+let charSelectIndex = 0; // 0 = prince, 1 = princess
+let cameraX = 0;
+let frameCount = 0;
+let currentLevel = 0;
+let score = 0;
+const MAX_LEVEL = 5;
+let levelCompleteTimer = 0;
+
+const LEVEL_CONFIG = [
+  { guardMin: 2, guardMax: 3, guardHp: 2, alertRange: 160, attackChance: 0.02, blockChance: 0.3, pitMin: 2, pitMax: 3, platMin: 2, platMax: 3 },
+  { guardMin: 3, guardMax: 4, guardHp: 3, alertRange: 180, attackChance: 0.03, blockChance: 0.4, pitMin: 3, pitMax: 4, platMin: 3, platMax: 4 },
+  { guardMin: 4, guardMax: 5, guardHp: 3, alertRange: 200, attackChance: 0.04, blockChance: 0.5, pitMin: 4, pitMax: 5, platMin: 3, platMax: 5 },
+  { guardMin: 5, guardMax: 6, guardHp: 4, alertRange: 220, attackChance: 0.05, blockChance: 0.55, pitMin: 4, pitMax: 6, platMin: 4, platMax: 6 },
+  { guardMin: 6, guardMax: 7, guardHp: 5, alertRange: 250, attackChance: 0.06, blockChance: 0.6, pitMin: 5, pitMax: 7, platMin: 4, platMax: 6 },
+];
+
+// ─── INPUT ─────────────────────────────────────────────
+const keys = {};
+const justPressed = {};
+document.addEventListener('keydown', e => {
+  if (!keys[e.code]) justPressed[e.code] = true;
+  keys[e.code] = true;
+  e.preventDefault();
+});
+document.addEventListener('keyup', e => {
+  keys[e.code] = false;
+  e.preventDefault();
+});
+
+// ─── TOUCH INPUT ──────────────────────────────────────
+if (isTouchDevice) {
+  const touchBtns = document.querySelectorAll('.touch-btn');
+  touchBtns.forEach(btn => {
+    const keyCode = btn.dataset.key;
+
+    btn.addEventListener('touchstart', e => {
+      e.preventDefault();
+      if (!keys[keyCode]) justPressed[keyCode] = true;
+      keys[keyCode] = true;
+      btn.classList.add('active');
+    }, { passive: false });
+
+    btn.addEventListener('touchend', e => {
+      e.preventDefault();
+      keys[keyCode] = false;
+      btn.classList.remove('active');
+    }, { passive: false });
+
+    btn.addEventListener('touchcancel', e => {
+      e.preventDefault();
+      keys[keyCode] = false;
+      btn.classList.remove('active');
+    }, { passive: false });
+  });
+
+  // Tap on canvas or overlay screens to start/restart
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (gameState === 'start' || gameState === 'gameover' || gameState === 'win') {
+      showCharSelect();
+    }
+  }, { passive: false });
+
+  // Tap on overlay screens to start/restart
+  ['startScreen', 'gameOverScreen', 'winScreen'].forEach(id => {
+    document.getElementById(id).addEventListener('touchstart', e => {
+      e.preventDefault();
+      if (gameState === 'start' || gameState === 'gameover' || gameState === 'win') {
+        showCharSelect();
+      }
+    }, { passive: false });
+  });
+
+  // Tap on char select options
+  document.getElementById('charOptionPrince').addEventListener('touchstart', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (gameState === 'charselect') {
+      if (charSelectIndex === 0) {
+        startGame();
+      } else {
+        charSelectIndex = 0;
+        updateCharSelectUI();
+      }
+    }
+  }, { passive: false });
+
+  document.getElementById('charOptionPrincess').addEventListener('touchstart', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (gameState === 'charselect') {
+      if (charSelectIndex === 1) {
+        startGame();
+      } else {
+        charSelectIndex = 1;
+        updateCharSelectUI();
+      }
+    }
+  }, { passive: false });
+
+  // Tap confirm prompt on char select
+  document.getElementById('charSelectScreen').addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (gameState === 'charselect') {
+      startGame();
+    }
+  }, { passive: false });
+}
+
+// ─── LEVEL LAYOUT ──────────────────────────────────────
+// The level is defined in terms of "rooms" (screens).
+// Each room is 640px wide. We use a tile grid for collision.
+const TILE = 32;
+const LEVEL_COLS = 80; // 80 * 32 = 2560px total (4 screens)
+const LEVEL_ROWS = 13; // 13 * 32 = 416px (close to 400)
+
+// Layout rows (in a 13-row grid):
+// Rows 0-2: ceiling wall (solid stone)
+// Rows 3-8: corridor (open, playable) — 6 tiles = 192px corridor height
+// Row 9: floor surface
+// Rows 10-12: floor wall (solid stone below)
+
+const CEILING_BOTTOM = 3;  // first open row
+const FLOOR_ROW = 9;       // floor surface row
+const CORRIDOR_TOP_Y = CEILING_BOTTOM * TILE; // 96px
+const CORRIDOR_BOT_Y = FLOOR_ROW * TILE;       // 288px
+const FLOOR_TOP_Y = FLOOR_ROW * TILE;
+const FLOOR_FACE_H = 20;  // height of the 3D front face of floor
+
+let level = [];
+
+// Random int in [min, max] inclusive
+function randInt(min, max) {
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+function buildLevel() {
+  level = [];
+  for (let r = 0; r < LEVEL_ROWS; r++) {
+    level[r] = [];
+    for (let c = 0; c < LEVEL_COLS; c++) {
+      if (r < CEILING_BOTTOM) {
+        level[r][c] = 2; // ceiling wall
+      } else if (r >= FLOOR_ROW) {
+        level[r][c] = 1; // floor
+      } else {
+        level[r][c] = 0; // corridor (open)
+      }
+    }
+  }
+
+  // ── Random pits ──
+  const cfg = LEVEL_CONFIG[currentLevel];
+  const pitCount = randInt(cfg.pitMin, cfg.pitMax);
+  const usedCols = new Set();
+  // Reserve cols 0-5 (start) and 75-79 (exit)
+  for (let c = 0; c <= 5; c++) usedCols.add(c);
+  for (let c = 75; c <= 79; c++) usedCols.add(c);
+
+  for (let i = 0; i < pitCount; i++) {
+    const pitWidth = randInt(1, 2); // 1-2 tiles wide (jumpable)
+    let start;
+    let attempts = 0;
+    do {
+      start = randInt(8, 73);
+      attempts++;
+    } while (attempts < 50 && [...Array(pitWidth + 2)].some((_, j) => usedCols.has(start - 1 + j)));
+
+    if (attempts >= 50) continue;
+    for (let c = start; c < start + pitWidth; c++) {
+      usedCols.add(c);
+      for (let r = FLOOR_ROW; r < LEVEL_ROWS; r++) {
+        level[r][c] = 0;
+      }
+      level[LEVEL_ROWS - 1][c] = 3; // spikes
+    }
+  }
+
+  // ── Random platforms ──
+  // Row 7 or 8 only — both are jumpable from ground (max jump ~2.5 tiles)
+  const platCount = randInt(cfg.platMin, cfg.platMax);
+  for (let i = 0; i < platCount; i++) {
+    const platWidth = randInt(3, 5);
+    const platRow = randInt(7, 8);
+    let start;
+    let attempts = 0;
+    do {
+      start = randInt(10, 72 - platWidth);
+      attempts++;
+      // Avoid overlapping pits or other platforms
+    } while (attempts < 50 && [...Array(platWidth)].some((_, j) => {
+      const c = start + j;
+      // Don't place platform over a pit
+      return level[FLOOR_ROW][c] !== 1;
+    }));
+
+    if (attempts >= 50) continue;
+    for (let c = start; c < start + platWidth; c++) {
+      level[platRow][c] = 1;
+    }
+  }
+
+  // Exit at far right
+  level[8][78] = 4;
+  level[7][78] = 4;
+}
+
+// Pillar positions (world X coordinates — at room boundaries and key locations)
+let pillarPositions = [];
+
+// Torch positions (world X coordinates)
+let torchWorldX = [];
+
+function randomizeDecorations() {
+  // Pillars: always at boundaries + 1-2 random mid-room pillars
+  pillarPositions = [0, 640, 1280, 1920];
+  const extraPillars = randInt(1, 3);
+  for (let i = 0; i < extraPillars; i++) {
+    pillarPositions.push(randInt(200, 2300));
+  }
+  pillarPositions.sort((a, b) => a - b);
+
+  // Torches: 6-10 randomly placed along the corridor
+  torchWorldX = [];
+  const torchCount = randInt(6, 10);
+  for (let i = 0; i < torchCount; i++) {
+    torchWorldX.push(randInt(80, 2460));
+  }
+  torchWorldX.sort((a, b) => a - b);
+}
+
+// ─── STONE PATTERN CACHE ──────────────────────────────
+// Pre-generate the stone block pattern for walls
+// Original PoP has large, irregular rectangular stones
+let stonePatternCanvas;
+
+function generateStonePattern() {
+  // Create a large repeating tile of stone blocks
+  const pw = 256;
+  const ph = 128;
+  stonePatternCanvas = document.createElement('canvas');
+  stonePatternCanvas.width = pw;
+  stonePatternCanvas.height = ph;
+  const pc = stonePatternCanvas.getContext('2d');
+
+  // Base fill
+  pc.fillStyle = COL.mortar;
+  pc.fillRect(0, 0, pw, ph);
+
+  // Stone rows — each row has variable height stones
+  const shades = [COL.stone1, COL.stone2, COL.stone3, COL.stone4, COL.stone2, COL.stone1, COL.stone3];
+  // Use a seeded pseudo-random for consistency
+  let seed = 42;
+  function srand() {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+    return (seed / 0x7fffffff);
+  }
+
+  let y = 0;
+  let rowIdx = 0;
+  while (y < ph) {
+    const rowH = 20 + Math.floor(srand() * 16); // 20-36px tall rows
+    const offset = (rowIdx % 2 === 0) ? 0 : 30 + Math.floor(srand() * 20);
+    let x = -offset;
+    while (x < pw) {
+      const blockW = 40 + Math.floor(srand() * 50); // 40-90px wide
+      const shade = shades[Math.floor(srand() * shades.length)];
+
+      // Draw stone block with subtle 3D bevel
+      const bx = Math.max(0, x + 1);
+      const by = y + 1;
+      const bw = Math.min(blockW - 2, pw - bx);
+      const bh = rowH - 2;
+      if (bw > 0 && bh > 0) {
+        pc.fillStyle = shade;
+        pc.fillRect(bx, by, bw, bh);
+
+        // Top/left highlight
+        pc.fillStyle = lighten(shade, 18);
+        pc.fillRect(bx, by, bw, 2);
+        pc.fillRect(bx, by, 2, bh);
+
+        // Bottom/right shadow
+        pc.fillStyle = darken(shade, 20);
+        pc.fillRect(bx, by + bh - 2, bw, 2);
+        pc.fillRect(bx + bw - 2, by, 2, bh);
+
+        // Subtle surface texture
+        if (srand() > 0.5) {
+          pc.fillStyle = darken(shade, 8);
+          const tx = bx + 4 + Math.floor(srand() * (bw - 10));
+          const ty = by + 3 + Math.floor(srand() * (bh - 6));
+          pc.fillRect(tx, ty, 3 + Math.floor(srand() * 6), 1);
+        }
+      }
+      x += blockW;
+    }
+    y += rowH;
+    rowIdx++;
+  }
+}
+
+function lighten(hex, amt) {
+  const r = Math.min(255, parseInt(hex.slice(1,3), 16) + amt);
+  const g = Math.min(255, parseInt(hex.slice(3,5), 16) + amt);
+  const b = Math.min(255, parseInt(hex.slice(5,7), 16) + amt);
+  return `rgb(${r},${g},${b})`;
+}
+
+function darken(hex, amt) {
+  const r = Math.max(0, parseInt(hex.slice(1,3), 16) - amt);
+  const g = Math.max(0, parseInt(hex.slice(3,5), 16) - amt);
+  const b = Math.max(0, parseInt(hex.slice(5,7), 16) - amt);
+  return `rgb(${r},${g},${b})`;
+}
+
+// ─── ENTITIES ──────────────────────────────────────────
+let player, guards, particles;
+
+function initEntities() {
+  player = {
+    x: 80, y: FLOOR_ROW * TILE - 72,
+    w: 28, h: 70,
+    vx: 0, vy: 0,
+    facing: 1,
+    grounded: false,
+    hp: 5, maxHp: 5,
+    state: 'idle',
+    stateTimer: 0,
+    attackCooldown: 0,
+    hurtCooldown: 0,
+    animFrame: 0,
+    animTimer: 0,
+    swordOut: false,
+  };
+
+  // Place guards spread across the level, avoiding start zone
+  const cfg = LEVEL_CONFIG[currentLevel];
+  const guardCount = randInt(cfg.guardMin, cfg.guardMax);
+  guards = [];
+  const guardZoneSize = Math.floor(2000 / guardCount);
+  for (let i = 0; i < guardCount; i++) {
+    const zoneStart = 300 + i * guardZoneSize;
+    const gx = randInt(zoneStart, zoneStart + guardZoneSize - 100);
+    guards.push(createGuard(Math.min(gx, 2350), 'patrol', cfg));
+  }
+
+  particles = [];
+}
+
+function createGuard(x, behavior, cfg) {
+  const hp = cfg ? cfg.guardHp : 3;
+  return {
+    x: x, y: FLOOR_ROW * TILE - 72,
+    w: 28, h: 70,
+    vx: 0, vy: 0,
+    facing: -1,
+    grounded: false,
+    hp: hp, maxHp: hp,
+    state: 'idle',
+    stateTimer: 0,
+    attackCooldown: 0,
+    hurtCooldown: 0,
+    animFrame: 0,
+    animTimer: 0,
+    behavior: behavior,
+    patrolDir: -1,
+    patrolOriginX: x,
+    patrolRange: 80,
+    alertRange: cfg ? cfg.alertRange : 180,
+    attackRange: 44,
+    attackChance: cfg ? cfg.attackChance : 0.03,
+    blockChance: cfg ? cfg.blockChance : 0.4,
+    alive: true,
+    swordOut: true,
+  };
+}
+
+// ─── PHYSICS & COLLISION ───────────────────────────────
+const GRAVITY = 0.55;
+const JUMP_FORCE = -9.5;
+const MOVE_SPEED = 2.5;
+const FRICTION = 0.7;
+
+function getTile(col, row) {
+  if (row < 0 || row >= LEVEL_ROWS || col < 0 || col >= LEVEL_COLS) return 2;
+  return level[row][col];
+}
+
+function isSolid(col, row) {
+  const t = getTile(col, row);
+  return t === 1 || t === 2;
+}
+
+function moveEntity(ent) {
+  ent.vy += GRAVITY;
+  if (ent.vy > 12) ent.vy = 12;
+
+  // Move X
+  ent.x += ent.vx;
+  const left = Math.floor(ent.x / TILE);
+  const right = Math.floor((ent.x + ent.w) / TILE);
+  const top = Math.floor(ent.y / TILE);
+  const bot = Math.floor((ent.y + ent.h - 1) / TILE);
+  for (let r = top; r <= bot; r++) {
+    if (isSolid(left, r)) {
+      ent.x = (left + 1) * TILE;
+      ent.vx = 0;
+    }
+    if (isSolid(right, r)) {
+      ent.x = right * TILE - ent.w - 1;
+      ent.vx = 0;
+    }
+  }
+
+  // Move Y
+  ent.y += ent.vy;
+  ent.grounded = false;
+  const left2 = Math.floor(ent.x / TILE);
+  const right2 = Math.floor((ent.x + ent.w) / TILE);
+  const top2 = Math.floor(ent.y / TILE);
+  const bot2 = Math.floor((ent.y + ent.h) / TILE);
+
+  if (ent.vy >= 0) {
+    for (let c = left2; c <= right2; c++) {
+      if (isSolid(c, bot2)) {
+        ent.y = bot2 * TILE - ent.h;
+        ent.vy = 0;
+        ent.grounded = true;
+      }
+    }
+  }
+  if (ent.vy < 0) {
+    for (let c = left2; c <= right2; c++) {
+      if (isSolid(c, top2)) {
+        ent.y = (top2 + 1) * TILE;
+        ent.vy = 0;
+      }
+    }
+  }
+
+  // Check spikes
+  const centerCol = Math.floor((ent.x + ent.w / 2) / TILE);
+  const feetRow = Math.floor((ent.y + ent.h + 2) / TILE);
+  if (getTile(centerCol, feetRow) === 3 || getTile(centerCol, bot2) === 3) {
+    return 'spikes';
+  }
+
+  // Check exit
+  if (getTile(centerCol, Math.floor((ent.y + ent.h / 2) / TILE)) === 4) {
+    return 'exit';
+  }
+
+  if (ent.y > LEVEL_ROWS * TILE + 50) return 'fell';
+  return null;
+}
+
+// ─── PLAYER UPDATE ─────────────────────────────────────
+function updatePlayer() {
+  const p = player;
+  p.stateTimer++;
+  p.animTimer++;
+  if (p.attackCooldown > 0) p.attackCooldown--;
+  if (p.hurtCooldown > 0) p.hurtCooldown--;
+
+  if (p.state === 'hurt') {
+    if (p.stateTimer > 20) { p.state = 'idle'; p.stateTimer = 0; }
+    p.vx *= 0.8;
+  } else if (p.state === 'attack') {
+    if (p.stateTimer > 18) { p.state = 'idle'; p.stateTimer = 0; p.swordOut = false; }
+    p.vx *= 0.5;
+    if (p.stateTimer >= 6 && p.stateTimer <= 12) {
+      p.swordOut = true;
+      checkSwordHit(p, guards);
+    }
+  } else if (p.state === 'block') {
+    p.vx *= 0.5;
+    if (!keys['KeyS']) { p.state = 'idle'; p.stateTimer = 0; }
+  } else {
+    const shifting = keys['ShiftLeft'] || keys['ShiftRight'];
+    const speed = shifting ? MOVE_SPEED * 0.4 : MOVE_SPEED;
+
+    if (keys['ArrowLeft']) {
+      p.vx = -speed;
+      p.facing = -1;
+      if (p.grounded && p.state !== 'jump') p.state = shifting ? 'walk' : 'run';
+    } else if (keys['ArrowRight']) {
+      p.vx = speed;
+      p.facing = 1;
+      if (p.grounded && p.state !== 'jump') p.state = shifting ? 'walk' : 'run';
+    } else {
+      p.vx *= FRICTION;
+      if (Math.abs(p.vx) < 0.1) p.vx = 0;
+      if (p.grounded) p.state = 'idle';
+    }
+
+    if (keys['Space'] && p.grounded) {
+      p.vy = JUMP_FORCE;
+      p.grounded = false;
+      p.state = 'jump';
+      p.stateTimer = 0;
+    }
+
+    if (justPressed['Enter'] && p.attackCooldown <= 0) {
+      p.state = 'attack';
+      p.stateTimer = 0;
+      p.attackCooldown = 25;
+    }
+
+    if (keys['KeyS'] && p.grounded) {
+      p.state = 'block';
+      p.stateTimer = 0;
+    }
+  }
+
+  if (!p.grounded && p.state !== 'attack' && p.state !== 'hurt' && p.state !== 'block') {
+    p.state = p.vy < 0 ? 'jump' : 'fall';
+  }
+
+  const animSpeed = p.state === 'walk' ? 12 : 6;
+  if (p.animTimer > animSpeed) { p.animFrame = (p.animFrame + 1) % 4; p.animTimer = 0; }
+
+  const result = moveEntity(p);
+  if (result === 'spikes' || result === 'fell') p.hp = 0;
+  if (result === 'exit') {
+    score += 500 + p.hp * 50;
+    if (currentLevel < MAX_LEVEL - 1) {
+      gameState = 'levelcomplete';
+      levelCompleteTimer = 120;
+    } else {
+      gameState = 'win';
+      document.getElementById('winScreen').querySelector('.subtitle').textContent =
+        'You have escaped the dungeon! Final Score: ' + score;
+      document.getElementById('winScreen').classList.remove('hidden');
+    }
+  }
+  if (p.hp <= 0) {
+    gameState = 'gameover';
+    document.getElementById('gameOverScreen').querySelector('.subtitle').textContent =
+      'The dungeon claims another soul... Level ' + (currentLevel + 1) + ' — Score: ' + score;
+    document.getElementById('gameOverScreen').classList.remove('hidden');
+  }
+}
+
+function checkSwordHit(attacker, targets) {
+  const hitboxX = attacker.facing === 1 ? attacker.x + attacker.w : attacker.x - 38;
+  const hitboxW = 38;
+  const hitboxY = attacker.y + 12;
+  const hitboxH = 30;
+
+  const arr = Array.isArray(targets) ? targets : [targets];
+  for (const target of arr) {
+    if (target.hurtCooldown > 0 || target.hp <= 0 || target === attacker) continue;
+    if (target.state === 'block' && target.facing !== attacker.facing) {
+      spawnParticles(target.x + target.w / 2, target.y + 14, '#ffdd44', 3);
+      continue;
+    }
+    if (hitboxX < target.x + target.w && hitboxX + hitboxW > target.x &&
+        hitboxY < target.y + target.h && hitboxY + hitboxH > target.y) {
+      target.hp--;
+      target.hurtCooldown = 30;
+      target.state = 'hurt';
+      target.stateTimer = 0;
+      target.vx = attacker.facing * 5;
+      spawnParticles(target.x + target.w / 2, target.y + 14, '#cc3333', 6);
+      if (target.hp <= 0 && target.alive !== undefined) {
+        target.alive = false;
+        score += 100;
+        spawnParticles(target.x + target.w / 2, target.y + target.h / 2, '#9050a0', 12);
+      }
+    }
+  }
+}
+
+// ─── GUARD AI ──────────────────────────────────────────
+function updateGuard(g) {
+  if (!g.alive) return;
+  g.stateTimer++;
+  g.animTimer++;
+  if (g.attackCooldown > 0) g.attackCooldown--;
+  if (g.hurtCooldown > 0) g.hurtCooldown--;
+
+  const dist = player.x - g.x;
+  const absDist = Math.abs(dist);
+
+  if (g.state === 'hurt') {
+    if (g.stateTimer > 15) { g.state = 'idle'; g.stateTimer = 0; }
+    g.vx *= 0.8;
+  } else if (g.state === 'attack') {
+    if (g.stateTimer > 18) { g.state = 'idle'; g.stateTimer = 0; }
+    g.vx *= 0.3;
+    if (g.stateTimer >= 6 && g.stateTimer <= 12) checkSwordHit(g, player);
+  } else if (absDist < g.alertRange) {
+    g.facing = dist > 0 ? 1 : -1;
+    if (absDist > g.attackRange) {
+      g.vx = g.facing * (MOVE_SPEED * 0.7);
+      g.state = 'run';
+    } else {
+      g.vx *= 0.5;
+      if (g.attackCooldown <= 0 && Math.random() < g.attackChance) {
+        g.state = 'attack'; g.stateTimer = 0; g.attackCooldown = 40;
+      } else if (player.state === 'attack' && player.stateTimer < 6 && Math.random() < g.blockChance) {
+        g.state = 'block'; g.stateTimer = 0;
+      } else {
+        g.state = 'idle';
+      }
+    }
+  } else {
+    g.state = 'run';
+    g.vx = g.patrolDir * (MOVE_SPEED * 0.4);
+    g.facing = g.patrolDir;
+    if (Math.abs(g.x - g.patrolOriginX) > g.patrolRange) g.patrolDir *= -1;
+  }
+
+  if (g.state === 'block' && g.stateTimer > 15) { g.state = 'idle'; g.stateTimer = 0; }
+  if (g.animTimer > 8) { g.animFrame = (g.animFrame + 1) % 4; g.animTimer = 0; }
+  moveEntity(g);
+}
+
+// ─── PARTICLES ─────────────────────────────────────────
+function spawnParticles(x, y, color, count) {
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 4,
+      vy: (Math.random() - 1) * 3,
+      life: 20 + Math.random() * 15,
+      color, size: 1 + Math.random() * 2,
+    });
+  }
+}
+
+function updateParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life--;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+// ─── DRAWING ───────────────────────────────────────────
+
+function drawStoneWall(screenX, screenY, w, h) {
+  // Tile the pre-generated stone pattern
+  const pw = stonePatternCanvas.width;
+  const ph = stonePatternCanvas.height;
+  // Use world-space tiling so pattern doesn't slide with camera
+  const worldX = screenX + cameraX;
+  const offsetX = ((worldX % pw) + pw) % pw;
+  const offsetY = ((screenY % ph) + ph) % ph;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(screenX, screenY, w, h);
+  ctx.clip();
+
+  for (let dy = -offsetY; dy < h; dy += ph) {
+    for (let dx = -offsetX; dx < w; dx += pw) {
+      ctx.drawImage(stonePatternCanvas, screenX + dx, screenY + dy);
+    }
+  }
+  ctx.restore();
+}
+
+function drawLevel() {
+  // 1. Full screen dark background
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  const camLeft = cameraX;
+  const camRight = cameraX + W;
+
+  // 2. Draw ceiling wall (stone blocks, rows 0 to CEILING_BOTTOM)
+  const ceilingH = CEILING_BOTTOM * TILE;
+  drawStoneWall(0, 0, W, ceilingH);
+
+  // Add a bottom edge shadow to ceiling
+  ctx.fillStyle = COL.mortarDark;
+  ctx.fillRect(0, ceilingH - 1, W, 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.fillRect(0, ceilingH, W, 4);
+
+  // 3. Draw corridor background (very dark)
+  const corrH = (FLOOR_ROW - CEILING_BOTTOM) * TILE;
+  ctx.fillStyle = COL.corridorBg;
+  ctx.fillRect(0, ceilingH, W, corrH);
+
+  // Subtle back wall pattern — vertical drip/stain lines
+  ctx.fillStyle = COL.dripLine;
+  for (let wx = Math.floor(camLeft / 18) * 18; wx < camRight; wx += 18) {
+    const sx = wx - cameraX;
+    const hash = ((wx * 2654435761) >>> 0) % 100;
+    if (hash < 30) {
+      const dripH = 20 + (hash * 3);
+      ctx.fillRect(sx, ceilingH + 2, 1, dripH);
+    }
+  }
+
+  // Very subtle back wall horizontal lines
+  for (let r = CEILING_BOTTOM; r < FLOOR_ROW; r++) {
+    const y = r * TILE;
+    ctx.fillStyle = 'rgba(30,30,50,0.5)';
+    ctx.fillRect(0, y, W, 1);
+  }
+
+  // 4. Draw floor — with 3D front face like original PoP
+  // Check which columns have floor
+  const startCol = Math.floor(cameraX / TILE);
+  const endCol = Math.ceil((cameraX + W) / TILE) + 1;
+
+  for (let c = startCol; c < endCol && c < LEVEL_COLS; c++) {
+    const sx = c * TILE - cameraX;
+
+    // Main ground floor
+    if (level[FLOOR_ROW] && level[FLOOR_ROW][c] === 1) {
+      // Floor top surface (lighter stone)
+      drawStoneWall(sx, FLOOR_TOP_Y, TILE, TILE);
+
+      // Bright edge highlight at very top of floor
+      ctx.fillStyle = COL.floorEdge;
+      ctx.fillRect(sx, FLOOR_TOP_Y, TILE, 2);
+
+      // 3D front face of floor (darker, shows depth)
+      ctx.fillStyle = COL.floorFace;
+      ctx.fillRect(sx, FLOOR_TOP_Y + 2, TILE, 3);
+    }
+
+    // Below-floor wall fill
+    for (let r = FLOOR_ROW + 1; r < LEVEL_ROWS; r++) {
+      if (level[r][c] === 1 || level[r][c] === 2) {
+        drawStoneWall(sx, r * TILE, TILE, TILE);
+      }
+    }
+
+    // Elevated platforms
+    for (let r = CEILING_BOTTOM; r < FLOOR_ROW; r++) {
+      if (level[r][c] === 1) {
+        const py = r * TILE;
+        drawStoneWall(sx, py, TILE, TILE);
+        // Platform top highlight
+        ctx.fillStyle = COL.floorEdge;
+        ctx.fillRect(sx, py, TILE, 2);
+        // Front face
+        ctx.fillStyle = COL.floorFace;
+        ctx.fillRect(sx, py + 2, TILE, 3);
+      }
+    }
+
+    // Spikes
+    if (level[LEVEL_ROWS - 1] && level[LEVEL_ROWS - 1][c] === 3) {
+      const sy = (LEVEL_ROWS - 1) * TILE;
+      ctx.fillStyle = '#667';
+      for (let s = 0; s < 4; s++) {
+        const sx2 = sx + 2 + s * 7;
+        ctx.beginPath();
+        ctx.moveTo(sx2, sy + TILE);
+        ctx.lineTo(sx2 + 3, sy + 6);
+        ctx.lineTo(sx2 + 6, sy + TILE);
+        ctx.fill();
+      }
+      // Spike tips highlight
+      ctx.fillStyle = '#99a';
+      for (let s = 0; s < 4; s++) {
+        const sx2 = sx + 2 + s * 7;
+        ctx.fillRect(sx2 + 2, sy + 6, 2, 2);
+      }
+    }
+
+    // Exit
+    for (let r = CEILING_BOTTOM; r < LEVEL_ROWS; r++) {
+      if (level[r][c] === 4) {
+        const ey = r * TILE;
+        const ex = sx;
+        // Dark doorway
+        ctx.fillStyle = '#1a1208';
+        ctx.fillRect(ex, ey, TILE, TILE);
+        // Golden glow
+        const glow = Math.sin(frameCount * 0.06) * 0.3 + 0.7;
+        ctx.fillStyle = `rgba(255, 200, 50, ${glow * 0.15})`;
+        ctx.fillRect(ex - 6, ey - 6, TILE + 12, TILE + 12);
+        // Door arch
+        ctx.fillStyle = `rgba(255, 220, 80, ${glow * 0.6})`;
+        ctx.fillRect(ex + 4, ey + 4, TILE - 8, TILE - 4);
+        // Arch top
+        ctx.fillStyle = '#8B7020';
+        ctx.fillRect(ex + 2, ey, TILE - 4, 3);
+        ctx.fillRect(ex, ey + 2, 3, TILE - 2);
+        ctx.fillRect(ex + TILE - 3, ey + 2, 3, TILE - 2);
+      }
+    }
+  }
+
+  // 5. Draw pillars (vertical columns at room boundaries)
+  for (const px of pillarPositions) {
+    const sx = px - cameraX;
+    if (sx < -32 || sx > W + 32) continue;
+    drawPillar(sx, CORRIDOR_TOP_Y, corrH);
+  }
+
+  // 6. Draw torches on back wall
+  for (const tx of torchWorldX) {
+    const sx = tx - cameraX;
+    if (sx < -30 || sx > W + 30) continue;
+    drawTorch(sx, CORRIDOR_TOP_Y + corrH * 0.35);
+  }
+}
+
+function drawPillar(x, y, h) {
+  const pw = 20;
+  // Main pillar body
+  ctx.fillStyle = COL.pillarMid;
+  ctx.fillRect(x - pw/2, y, pw, h);
+  // Left highlight
+  ctx.fillStyle = COL.pillarLight;
+  ctx.fillRect(x - pw/2, y, 4, h);
+  // Right shadow
+  ctx.fillStyle = COL.pillarDark;
+  ctx.fillRect(x + pw/2 - 4, y, 4, h);
+  // Top and bottom caps
+  ctx.fillStyle = COL.pillarLight;
+  ctx.fillRect(x - pw/2 - 2, y, pw + 4, 4);
+  ctx.fillRect(x - pw/2 - 2, y + h - 4, pw + 4, 4);
+  // Center groove
+  ctx.fillStyle = COL.mortarDark;
+  ctx.fillRect(x - 1, y + 6, 2, h - 12);
+}
+
+function drawTorch(x, y) {
+  // Wall bracket
+  ctx.fillStyle = COL.torchBracket;
+  ctx.fillRect(x - 2, y + 6, 6, 3);
+  ctx.fillRect(x + 3, y - 2, 3, 11);
+
+  // Torch handle
+  ctx.fillStyle = COL.torchHandle;
+  ctx.fillRect(x, y - 8, 3, 16);
+
+  // Fire — multi-layered animated flame
+  const t = frameCount;
+  const f1 = Math.sin(t * 0.25 + x * 0.1) * 3;
+  const f2 = Math.cos(t * 0.18 + x * 0.15) * 2;
+  const f3 = Math.sin(t * 0.35 + x * 0.07) * 1.5;
+
+  // Outer flame
+  ctx.fillStyle = COL.fire1;
+  ctx.beginPath();
+  ctx.ellipse(x + 1 + f2 * 0.4, y - 12, 5, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Middle flame
+  ctx.fillStyle = COL.fire2;
+  ctx.beginPath();
+  ctx.ellipse(x + 1 + f1 * 0.3, y - 14, 4, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Inner flame
+  ctx.fillStyle = COL.fire3;
+  ctx.beginPath();
+  ctx.ellipse(x + 1 + f3 * 0.2, y - 15, 3, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Bright core
+  ctx.fillStyle = COL.fire4;
+  ctx.beginPath();
+  ctx.ellipse(x + 1, y - 14, 1.5, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Light glow on corridor
+  const gradient = ctx.createRadialGradient(x + 1, y - 10, 2, x + 1, y - 10, 70);
+  gradient.addColorStop(0, 'rgba(255, 140, 40, 0.10)');
+  gradient.addColorStop(0.5, 'rgba(255, 120, 30, 0.04)');
+  gradient.addColorStop(1, 'rgba(255, 100, 20, 0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(x - 70, y - 80, 142, 160);
+}
+
+// ─── CHARACTER DRAWING ─────────────────────────────────
+// Large detailed sprites (~70px tall) matching original PoP style
+
+function drawCharacter(ent, isGuard) {
+  const sx = Math.round(ent.x - cameraX);
+  const sy = Math.round(ent.y);
+  const f = ent.facing;
+
+  ctx.save();
+  if (f === -1) {
+    ctx.translate(sx + ent.w, sy);
+    ctx.scale(-1, 1);
+  } else {
+    ctx.translate(sx, sy);
+  }
+
+  const isPrincess = !isGuard && selectedCharacter === 'princess';
+  const skin = isGuard ? COL.guardSkin : COL.skinTone;
+  const skinShade = darken(isGuard ? COL.guardSkin : COL.skinTone, 20);
+  const skinHi = lighten(isGuard ? COL.guardSkin : COL.skinTone, 15);
+  const tunic = isGuard ? COL.guardTunic : (isPrincess ? COL.princessTunic : COL.princeTunic);
+  const tunicShade = darken(tunic, 22);
+  const tunicHi = lighten(tunic, 12);
+  const pants = isGuard ? COL.guardPants : (isPrincess ? COL.princessPants : COL.princePants);
+  const pantsShade = darken(pants, 18);
+  const hair = isGuard ? COL.guardHair : (isPrincess ? COL.princessHair : COL.princeHair);
+
+  if (ent.hurtCooldown > 20) ctx.globalAlpha = 0.5;
+
+  const isMoving = ent.state === 'run' || ent.state === 'walk';
+  const walkScale = ent.state === 'walk' ? 0.4 : 1;
+  const bob = isMoving ? Math.sin(ent.animFrame * Math.PI) * 3 * walkScale : 0;
+  const legAnim = isMoving ? Math.sin(ent.animFrame * Math.PI) * walkScale : 0;
+  const armSwing = isMoving ? Math.sin(ent.animFrame * Math.PI) * walkScale : 0;
+  const breathe = Math.sin(frameCount * 0.06) * 0.5; // subtle idle breathing
+
+  // ── Shadow on ground ──
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(14, 70, 14, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ════════════════════════════════════════════════
+  // BACK ARM (drawn behind body)
+  // ════════════════════════════════════════════════
+  ctx.fillStyle = skin;
+  if (ent.state === 'attack') {
+    // Back arm stays close to body
+    ctx.fillStyle = tunicShade;
+    ctx.fillRect(1, 30 + bob, 5, 6);
+    ctx.fillStyle = skinShade;
+    ctx.fillRect(0, 36 + bob, 4, 8);
+    // Fist
+    ctx.fillRect(-1, 43 + bob, 5, 4);
+  } else if (ent.state === 'block') {
+    ctx.fillStyle = tunicShade;
+    ctx.fillRect(1, 30 + bob, 5, 6);
+    ctx.fillStyle = skinShade;
+    ctx.fillRect(0, 36 + bob, 4, 8);
+  } else {
+    // Back arm swings opposite to front
+    const backSwingY = -armSwing * 6;
+    ctx.fillStyle = tunicShade;
+    ctx.fillRect(1, 30 + bob + backSwingY, 5, 5);
+    ctx.fillStyle = skinShade;
+    ctx.fillRect(0, 35 + bob + backSwingY, 4, 9);
+    ctx.fillRect(-1, 43 + bob + backSwingY, 5, 4);
+  }
+
+  // ════════════════════════════════════════════════
+  // BACK LEG (drawn behind body)
+  // ════════════════════════════════════════════════
+  {
+    const backLeg = -legAnim * 8;
+    ctx.fillStyle = pantsShade;
+    if (ent.state === 'jump') {
+      ctx.fillRect(5, 50 + bob, 6, 10);
+      ctx.fillStyle = darken(pants, 30);
+      ctx.fillRect(4, 59 + bob, 7, 5);
+      ctx.fillStyle = '#332211';
+      ctx.fillRect(3, 63 + bob, 8, 4);
+      ctx.fillRect(2, 65 + bob, 5, 3);
+    } else if (ent.state === 'fall') {
+      ctx.fillRect(5, 48 + bob, 6, 12);
+      ctx.fillStyle = darken(pants, 30);
+      ctx.fillRect(4, 59 + bob, 7, 5);
+      ctx.fillStyle = '#332211';
+      ctx.fillRect(3, 63 + bob, 8, 4);
+    } else {
+      // Upper back leg (thigh)
+      ctx.fillRect(5 + backLeg * 0.3, 49 + bob, 6, 10);
+      // Lower back leg (shin)
+      ctx.fillStyle = darken(pants, 30);
+      ctx.fillRect(4 + backLeg * 0.5, 58 + bob, 7, 6);
+      // Back boot
+      ctx.fillStyle = '#332211';
+      ctx.fillRect(3 + backLeg * 0.6, 63 + bob, 8, 5);
+      ctx.fillRect(2 + backLeg * 0.6, 66 + bob, 5, 3);
+    }
+  }
+
+  // ════════════════════════════════════════════════
+  // LEGS (front leg)
+  // ════════════════════════════════════════════════
+  {
+    const frontLeg = legAnim * 8;
+    ctx.fillStyle = pants;
+    if (ent.state === 'jump') {
+      // Legs tucked
+      ctx.fillRect(12, 48 + bob, 7, 10);
+      ctx.fillStyle = pantsShade;
+      ctx.fillRect(13, 57 + bob, 7, 6);
+      // Boot
+      ctx.fillStyle = '#443322';
+      ctx.fillRect(12, 62 + bob, 8, 5);
+      ctx.fillRect(18, 65 + bob, 4, 3);
+      // Boot highlight
+      ctx.fillStyle = '#554433';
+      ctx.fillRect(12, 62 + bob, 8, 1);
+    } else if (ent.state === 'fall') {
+      ctx.fillRect(12, 46 + bob, 7, 12);
+      ctx.fillStyle = pantsShade;
+      ctx.fillRect(13, 57 + bob, 7, 6);
+      ctx.fillStyle = '#443322';
+      ctx.fillRect(12, 62 + bob, 8, 5);
+      ctx.fillRect(18, 65 + bob, 4, 3);
+    } else {
+      // Upper front leg (thigh)
+      ctx.fillRect(12 + frontLeg * 0.3, 49 + bob, 7, 10);
+      // Knee highlight
+      ctx.fillStyle = lighten(pants, 10);
+      ctx.fillRect(13 + frontLeg * 0.3, 55 + bob, 5, 2);
+      // Lower front leg (shin)
+      ctx.fillStyle = pantsShade;
+      ctx.fillRect(12 + frontLeg * 0.5, 58 + bob, 7, 6);
+      // Front boot
+      ctx.fillStyle = '#443322';
+      ctx.fillRect(11 + frontLeg * 0.6, 63 + bob, 9, 5);
+      // Boot toe
+      ctx.fillRect(18 + frontLeg * 0.6, 66 + bob, 5, 3);
+      // Boot highlight
+      ctx.fillStyle = '#554433';
+      ctx.fillRect(11 + frontLeg * 0.6, 63 + bob, 9, 1);
+      // Boot sole
+      ctx.fillStyle = '#221100';
+      ctx.fillRect(11 + frontLeg * 0.6, 67 + bob, 12, 2);
+    }
+  }
+
+  // ════════════════════════════════════════════════
+  // BODY / TORSO
+  // ════════════════════════════════════════════════
+  // Torso (tunic)
+  ctx.fillStyle = tunic;
+  ctx.fillRect(5, 26 + bob + breathe, 18, 24);
+
+  // Chest / tunic shading — left side shadow
+  ctx.fillStyle = tunicShade;
+  ctx.fillRect(5, 26 + bob + breathe, 4, 24);
+
+  // Right side highlight
+  ctx.fillStyle = tunicHi;
+  ctx.fillRect(20, 27 + bob + breathe, 2, 10);
+
+  // Collar / neckline
+  ctx.fillStyle = darken(tunic, 30);
+  ctx.fillRect(8, 26 + bob + breathe, 10, 3);
+  if (!isPrincess) {
+    // V-neck opening showing skin (prince only)
+    ctx.fillStyle = skin;
+    ctx.fillRect(11, 27 + bob + breathe, 4, 3);
+  }
+
+  // Tunic lower folds/creases
+  ctx.fillStyle = tunicShade;
+  ctx.fillRect(7, 40 + bob + breathe, 2, 6);
+  ctx.fillRect(14, 42 + bob + breathe, 2, 4);
+  ctx.fillRect(19, 39 + bob + breathe, 2, 5);
+
+  if (isPrincess) {
+    // Dress extension — tunic extends longer (mid-thigh)
+    ctx.fillStyle = tunic;
+    ctx.fillRect(5, 49 + bob + breathe, 18, 6);
+    // Dress side shading
+    ctx.fillStyle = tunicShade;
+    ctx.fillRect(5, 49 + bob + breathe, 3, 6);
+    // Dress hem
+    ctx.fillStyle = darken(tunic, 15);
+    ctx.fillRect(4, 54 + bob + breathe, 20, 2);
+    // Slight flare at bottom
+    ctx.fillStyle = tunic;
+    ctx.fillRect(4, 53 + bob + breathe, 1, 3);
+    ctx.fillRect(23, 53 + bob + breathe, 1, 3);
+  } else {
+    // Tunic hem (bottom edge — prince)
+    ctx.fillStyle = darken(tunic, 15);
+    ctx.fillRect(5, 48 + bob + breathe, 18, 2);
+  }
+
+  // Belt
+  ctx.fillStyle = '#7a6018';
+  ctx.fillRect(5, 45 + bob, 18, 4);
+  // Belt highlight
+  ctx.fillStyle = '#9a8028';
+  ctx.fillRect(5, 45 + bob, 18, 1);
+  // Belt buckle
+  ctx.fillStyle = '#ccaa40';
+  ctx.fillRect(12, 45 + bob, 4, 4);
+  ctx.fillStyle = '#aa8830';
+  ctx.fillRect(13, 46 + bob, 2, 2);
+
+  // ════════════════════════════════════════════════
+  // SHOULDERS
+  // ════════════════════════════════════════════════
+  ctx.fillStyle = tunic;
+  // Back shoulder
+  ctx.fillRect(3, 27 + bob + breathe, 5, 5);
+  ctx.fillStyle = tunicShade;
+  ctx.fillRect(3, 27 + bob + breathe, 2, 5);
+  // Front shoulder
+  ctx.fillStyle = tunic;
+  ctx.fillRect(20, 27 + bob + breathe, 6, 5);
+  ctx.fillStyle = tunicHi;
+  ctx.fillRect(23, 27 + bob + breathe, 2, 4);
+
+  // ════════════════════════════════════════════════
+  // FRONT ARM + SWORD
+  // ════════════════════════════════════════════════
+  ctx.fillStyle = skin;
+  if (ent.state === 'attack') {
+    const prog = Math.min(ent.stateTimer / 8, 1);
+    const thrust = prog * 16;
+    // Upper arm
+    ctx.fillStyle = tunic;
+    ctx.fillRect(22, 29 + bob, 5 + thrust * 0.3, 5);
+    // Forearm — extended
+    ctx.fillStyle = skin;
+    ctx.fillRect(24 + thrust * 0.5, 30 + bob, 6 + thrust * 0.5, 5);
+    // Forearm shading
+    ctx.fillStyle = skinShade;
+    ctx.fillRect(24 + thrust * 0.5, 34 + bob, 6 + thrust * 0.5, 1);
+    // Fist / hand gripping sword
+    ctx.fillStyle = skin;
+    ctx.fillRect(28 + thrust, 29 + bob, 5, 6);
+
+    // ── Sword ──
+    // Hilt / guard
+    ctx.fillStyle = '#8B7020';
+    ctx.fillRect(27 + thrust, 27 + bob, 2, 10);
+    // Cross guard
+    ctx.fillStyle = '#ccaa40';
+    ctx.fillRect(25 + thrust, 31 + bob, 6, 2);
+    // Blade
+    ctx.fillStyle = COL.swordBlade;
+    ctx.fillRect(29 + thrust, 28 + bob, 16, 3);
+    // Blade highlight
+    ctx.fillStyle = '#e8eef8';
+    ctx.fillRect(29 + thrust, 28 + bob, 16, 1);
+    // Blade edge shadow
+    ctx.fillStyle = '#a0a8b8';
+    ctx.fillRect(29 + thrust, 30 + bob, 16, 1);
+    // Blade tip
+    ctx.fillStyle = COL.swordBlade;
+    ctx.fillRect(44 + thrust, 29 + bob, 3, 1);
+
+  } else if (ent.state === 'block') {
+    // Arm raised holding sword vertically
+    ctx.fillStyle = tunic;
+    ctx.fillRect(22, 27 + bob, 6, 5);
+    ctx.fillStyle = skin;
+    ctx.fillRect(24, 20 + bob, 5, 10);
+    // Hand
+    ctx.fillRect(23, 18 + bob, 6, 5);
+
+    // ── Sword vertical block ──
+    ctx.fillStyle = '#8B7020';
+    ctx.fillRect(25, 10 + bob, 2, 12);
+    ctx.fillStyle = '#ccaa40';
+    ctx.fillRect(22, 20 + bob, 8, 2);
+    ctx.fillStyle = COL.swordBlade;
+    ctx.fillRect(25, -2 + bob, 3, 14);
+    ctx.fillStyle = '#e8eef8';
+    ctx.fillRect(25, -2 + bob, 1, 14);
+
+  } else if (ent.swordOut) {
+    // Sword at ready — arm forward, blade angled up
+    ctx.fillStyle = tunic;
+    ctx.fillRect(22, 29 + bob, 6, 5);
+    ctx.fillStyle = skin;
+    ctx.fillRect(24, 33 + bob, 5, 8);
+    ctx.fillStyle = skinShade;
+    ctx.fillRect(24, 40 + bob, 5, 1);
+    // Hand
+    ctx.fillStyle = skin;
+    ctx.fillRect(25, 40 + bob, 5, 5);
+
+    // ── Sword at ready ──
+    ctx.fillStyle = '#8B7020';
+    ctx.fillRect(27, 36 + bob, 2, 8);
+    ctx.fillStyle = '#ccaa40';
+    ctx.fillRect(25, 39 + bob, 6, 2);
+    // Blade angled up
+    ctx.fillStyle = COL.swordBlade;
+    ctx.fillRect(27, 20 + bob, 3, 18);
+    ctx.fillStyle = '#e8eef8';
+    ctx.fillRect(27, 20 + bob, 1, 18);
+    ctx.fillStyle = '#a0a8b8';
+    ctx.fillRect(29, 20 + bob, 1, 18);
+
+  } else {
+    // Relaxed — arms at sides
+    const frontSwingY = armSwing * 6;
+    ctx.fillStyle = tunic;
+    ctx.fillRect(22, 29 + bob + frontSwingY, 5, 5);
+    ctx.fillStyle = skin;
+    ctx.fillRect(23, 34 + bob + frontSwingY, 5, 9);
+    ctx.fillStyle = skinShade;
+    ctx.fillRect(23, 42 + bob + frontSwingY, 5, 1);
+    // Hand
+    ctx.fillStyle = skin;
+    ctx.fillRect(23, 42 + bob + frontSwingY, 5, 4);
+    ctx.fillStyle = skinHi;
+    ctx.fillRect(24, 42 + bob + frontSwingY, 3, 1);
+  }
+
+  // ════════════════════════════════════════════════
+  // NECK
+  // ════════════════════════════════════════════════
+  ctx.fillStyle = skin;
+  ctx.fillRect(10, 22 + bob + breathe, 6, 6);
+  ctx.fillStyle = skinShade;
+  ctx.fillRect(10, 22 + bob + breathe, 2, 5);
+
+  // ════════════════════════════════════════════════
+  // HEAD
+  // ════════════════════════════════════════════════
+  // Head shape
+  ctx.fillStyle = skin;
+  ctx.fillRect(6, 6 + bob, 16, 17);
+
+  // Jaw / chin (slightly narrower)
+  ctx.fillStyle = skin;
+  ctx.fillRect(8, 21 + bob, 12, 3);
+
+  // Face shading — left side shadow
+  ctx.fillStyle = skinShade;
+  ctx.fillRect(6, 8 + bob, 3, 13);
+
+  // Cheek highlight
+  ctx.fillStyle = skinHi;
+  ctx.fillRect(16, 14 + bob, 3, 4);
+
+  // ── Hair ──
+  ctx.fillStyle = hair;
+  if (isPrincess) {
+    // Princess's longer auburn hair — top of head
+    ctx.fillRect(5, 3 + bob, 17, 6);
+    ctx.fillRect(4, 5 + bob, 3, 8);
+    // Hair parting / volume on top
+    ctx.fillStyle = lighten(hair, 20);
+    ctx.fillRect(10, 3 + bob, 6, 2);
+    // Hair flowing back — longer, to shoulder level
+    ctx.fillStyle = hair;
+    ctx.fillRect(3, 7 + bob, 4, 10);
+    ctx.fillRect(2, 9 + bob, 3, 12);
+    ctx.fillRect(1, 12 + bob, 2, 14);
+    ctx.fillRect(0, 16 + bob, 2, 14);
+    // Hair flowing forward (front side)
+    ctx.fillRect(20, 7 + bob, 3, 8);
+    ctx.fillRect(21, 12 + bob, 3, 10);
+    ctx.fillRect(22, 18 + bob, 2, 8);
+    // Hair tips highlights
+    ctx.fillStyle = lighten(hair, 15);
+    ctx.fillRect(0, 28 + bob, 2, 2);
+    ctx.fillRect(22, 24 + bob, 2, 2);
+    ctx.fillRect(1, 24 + bob, 2, 2);
+  } else if (!isGuard) {
+    // Prince's dark hair — top of head
+    ctx.fillRect(5, 3 + bob, 17, 6);
+    ctx.fillRect(4, 5 + bob, 3, 8);
+    // Hair parting / volume on top
+    ctx.fillStyle = lighten(hair, 15);
+    ctx.fillRect(10, 3 + bob, 6, 2);
+    // Hair flowing back
+    ctx.fillStyle = hair;
+    ctx.fillRect(3, 7 + bob, 4, 10);
+    ctx.fillRect(2, 9 + bob, 3, 8);
+    ctx.fillRect(1, 12 + bob, 2, 6);
+    // Hair tips
+    ctx.fillStyle = lighten(hair, 10);
+    ctx.fillRect(1, 16 + bob, 2, 2);
+  } else {
+    // Guard's hair under turban
+    ctx.fillRect(6, 6 + bob, 16, 3);
+    ctx.fillRect(5, 8 + bob, 3, 6);
+
+    // ── Turban / head wrap ──
+    ctx.fillStyle = '#cc3333';
+    ctx.fillRect(5, 0 + bob, 18, 8);
+    ctx.fillRect(4, 2 + bob, 20, 5);
+    // Turban highlight
+    ctx.fillStyle = '#dd5555';
+    ctx.fillRect(8, 1 + bob, 10, 3);
+    // Turban wrap line
+    ctx.fillStyle = '#aa2222';
+    ctx.fillRect(5, 5 + bob, 18, 2);
+    // Turban jewel
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillRect(13, 2 + bob, 3, 3);
+    ctx.fillStyle = '#ffee66';
+    ctx.fillRect(14, 3 + bob, 1, 1);
+  }
+
+  // ── Eyes ──
+  // Eye white
+  ctx.fillStyle = '#eee';
+  ctx.fillRect(16, 12 + bob, 4, 3);
+  // Iris
+  ctx.fillStyle = '#332211';
+  ctx.fillRect(17, 12 + bob, 3, 3);
+  // Pupil
+  ctx.fillStyle = '#111';
+  ctx.fillRect(18, 13 + bob, 2, 2);
+  // Eye highlight
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(18, 12 + bob, 1, 1);
+  // Eyebrow
+  ctx.fillStyle = darken(hair, 10);
+  ctx.fillRect(15, 10 + bob, 6, 2);
+
+  // ── Nose ──
+  ctx.fillStyle = skinShade;
+  ctx.fillRect(20, 15 + bob, 2, 4);
+  ctx.fillStyle = skin;
+  ctx.fillRect(20, 14 + bob, 2, 2);
+  // Nostril
+  ctx.fillStyle = darken(skin, 30);
+  ctx.fillRect(21, 18 + bob, 1, 1);
+
+  // ── Mouth ──
+  ctx.fillStyle = darken(skin, 25);
+  ctx.fillRect(17, 20 + bob, 4, 1);
+  // Lower lip highlight
+  ctx.fillStyle = lighten(skin, 5);
+  ctx.fillRect(17, 21 + bob, 4, 1);
+
+  // ── Ear ──
+  ctx.fillStyle = skin;
+  ctx.fillRect(5, 13 + bob, 3, 5);
+  ctx.fillStyle = skinShade;
+  ctx.fillRect(6, 14 + bob, 1, 3);
+
+  ctx.restore();
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    const sx = p.x - cameraX;
+    ctx.globalAlpha = p.life / 35;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(sx, p.y, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawHUD() {
+  const p = player;
+
+  // Level indicator — top left
+  ctx.fillStyle = '#d4a44a';
+  ctx.font = 'bold 14px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('LEVEL ' + (currentLevel + 1), 10, 18);
+
+  // Score — top center
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#fff';
+  ctx.fillText('SCORE ' + score, W / 2, 18);
+  ctx.textAlign = 'left';
+
+  // Player health — red triangles at bottom-left (like original)
+  for (let i = 0; i < p.maxHp; i++) {
+    const hx = 12 + i * 14;
+    const hy = H - 14;
+    if (i < p.hp) {
+      ctx.fillStyle = COL.hpFull;
+      // Filled triangle
+      ctx.beginPath();
+      ctx.moveTo(hx, hy + 8);
+      ctx.lineTo(hx + 5, hy);
+      ctx.lineTo(hx + 10, hy + 8);
+      ctx.closePath();
+      ctx.fill();
+      // White outline
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    } else {
+      // Empty triangle outline
+      ctx.strokeStyle = '#555';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(hx, hy + 8);
+      ctx.lineTo(hx + 5, hy);
+      ctx.lineTo(hx + 10, hy + 8);
+      ctx.closePath();
+      ctx.stroke();
+    }
+  }
+
+  // Guard HP — small pips above their heads
+  for (const g of guards) {
+    if (!g.alive) continue;
+    const gx = g.x - cameraX;
+    if (gx < -20 || gx > W + 20) continue;
+    for (let i = 0; i < g.maxHp; i++) {
+      const hx = gx + 4 + i * 9;
+      const hy = g.y - 12;
+      ctx.fillStyle = i < g.hp ? COL.hpFull : '#333';
+      ctx.fillRect(hx, hy, 7, 5);
+      ctx.strokeStyle = i < g.hp ? '#ff6666' : '#555';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(hx, hy, 7, 5);
+    }
+  }
+
+  // Guard health triangles — bottom right
+  const nearestGuard = guards.find(g => g.alive && Math.abs(g.x - player.x) < 200);
+  if (nearestGuard) {
+    for (let i = 0; i < nearestGuard.maxHp; i++) {
+      const hx = W - 12 - (nearestGuard.maxHp - i) * 14;
+      const hy = H - 14;
+      if (i < nearestGuard.hp) {
+        ctx.fillStyle = COL.hpFull;
+        ctx.beginPath();
+        ctx.moveTo(hx, hy + 8);
+        ctx.lineTo(hx + 5, hy);
+        ctx.lineTo(hx + 10, hy + 8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      } else {
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(hx, hy + 8);
+        ctx.lineTo(hx + 5, hy);
+        ctx.lineTo(hx + 10, hy + 8);
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+// ─── CAMERA ────────────────────────────────────────────
+function updateCamera() {
+  const targetX = player.x - W / 3;
+  cameraX += (targetX - cameraX) * 0.08;
+  cameraX = Math.max(0, Math.min(cameraX, LEVEL_COLS * TILE - W));
+}
+
+// ─── MAIN LOOP ─────────────────────────────────────────
+function update() {
+  if (gameState === 'playing') {
+    updatePlayer();
+    for (const g of guards) updateGuard(g);
+    updateParticles();
+    updateCamera();
+    frameCount++;
+  } else if (gameState === 'levelcomplete') {
+    frameCount++;
+    levelCompleteTimer--;
+    if (levelCompleteTimer <= 0) {
+      const savedHp = player.hp;
+      currentLevel++;
+      buildLevel();
+      randomizeDecorations();
+      initEntities();
+      player.hp = savedHp;
+      cameraX = 0;
+      gameState = 'playing';
+    }
+  }
+  for (const k in justPressed) justPressed[k] = false;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  if (gameState === 'playing' || gameState === 'gameover' || gameState === 'win' || gameState === 'levelcomplete') {
+    drawLevel();
+    for (const g of guards) { if (!g.alive) drawCharacter(g, true); }
+    for (const g of guards) { if (g.alive) drawCharacter(g, true); }
+    drawCharacter(player, false);
+    drawParticles();
+    drawHUD();
+  }
+  if (gameState === 'levelcomplete') {
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#d4a44a';
+    ctx.font = 'bold 28px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('LEVEL ' + (currentLevel + 1) + ' COMPLETE', W / 2, H / 2 - 30);
+    ctx.font = '18px monospace';
+    ctx.fillStyle = '#fff';
+    ctx.fillText('Score: ' + score, W / 2, H / 2 + 10);
+    ctx.font = '14px monospace';
+    ctx.fillStyle = '#aaa';
+    ctx.fillText('Next level...', W / 2, H / 2 + 40);
+    ctx.textAlign = 'left';
+  }
+}
+
+function startGame() {
+  currentLevel = 0;
+  score = 0;
+  buildLevel();
+  randomizeDecorations();
+  initEntities();
+  cameraX = 0;
+  frameCount = 0;
+  gameState = 'playing';
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  document.getElementById('winScreen').classList.add('hidden');
+  document.getElementById('charSelectScreen').classList.add('hidden');
+}
+
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+function drawCharPreview(canvasId, charType) {
+  const cvs = document.getElementById(canvasId);
+  const pc = cvs.getContext('2d');
+  pc.clearRect(0, 0, cvs.width, cvs.height);
+
+  const isPrincessPreview = charType === 'princess';
+  const skin = COL.skinTone;
+  const skinShade = darken(skin, 20);
+  const skinHi = lighten(skin, 15);
+  const tunic = isPrincessPreview ? COL.princessTunic : COL.princeTunic;
+  const tunicShade = darken(tunic, 22);
+  const tunicHi = lighten(tunic, 12);
+  const pantsCol = isPrincessPreview ? COL.princessPants : COL.princePants;
+  const pantsShade = darken(pantsCol, 18);
+  const hairCol = isPrincessPreview ? COL.princessHair : COL.princeHair;
+
+  // Offset to center the 28x70 sprite in the 60x90 canvas
+  pc.save();
+  pc.translate(16, 10);
+
+  // Shadow
+  pc.fillStyle = 'rgba(0,0,0,0.3)';
+  pc.beginPath();
+  pc.ellipse(14, 70, 14, 4, 0, 0, Math.PI * 2);
+  pc.fill();
+
+  // Back leg
+  pc.fillStyle = pantsShade;
+  pc.fillRect(5, 49, 6, 10);
+  pc.fillStyle = darken(pantsCol, 30);
+  pc.fillRect(4, 58, 7, 6);
+  pc.fillStyle = '#332211';
+  pc.fillRect(3, 63, 8, 5);
+  pc.fillRect(2, 66, 5, 3);
+
+  // Front leg
+  pc.fillStyle = pantsCol;
+  pc.fillRect(12, 49, 7, 10);
+  pc.fillStyle = pantsShade;
+  pc.fillRect(12, 58, 7, 6);
+  pc.fillStyle = '#443322';
+  pc.fillRect(11, 63, 9, 5);
+  pc.fillRect(18, 66, 5, 3);
+  pc.fillStyle = '#221100';
+  pc.fillRect(11, 67, 12, 2);
+
+  // Torso
+  pc.fillStyle = tunic;
+  pc.fillRect(5, 26, 18, 24);
+  pc.fillStyle = tunicShade;
+  pc.fillRect(5, 26, 4, 24);
+  pc.fillStyle = tunicHi;
+  pc.fillRect(20, 27, 2, 10);
+
+  // Collar
+  pc.fillStyle = darken(tunic, 30);
+  pc.fillRect(8, 26, 10, 3);
+  if (!isPrincessPreview) {
+    pc.fillStyle = skin;
+    pc.fillRect(11, 27, 4, 3);
+  }
+
+  // Tunic folds
+  pc.fillStyle = tunicShade;
+  pc.fillRect(7, 40, 2, 6);
+  pc.fillRect(14, 42, 2, 4);
+  pc.fillRect(19, 39, 2, 5);
+
+  if (isPrincessPreview) {
+    // Dress extension
+    pc.fillStyle = tunic;
+    pc.fillRect(5, 49, 18, 6);
+    pc.fillStyle = tunicShade;
+    pc.fillRect(5, 49, 3, 6);
+    pc.fillStyle = darken(tunic, 15);
+    pc.fillRect(4, 54, 20, 2);
+  } else {
+    pc.fillStyle = darken(tunic, 15);
+    pc.fillRect(5, 48, 18, 2);
+  }
+
+  // Belt
+  pc.fillStyle = '#7a6018';
+  pc.fillRect(5, 45, 18, 4);
+  pc.fillStyle = '#9a8028';
+  pc.fillRect(5, 45, 18, 1);
+  pc.fillStyle = '#ccaa40';
+  pc.fillRect(12, 45, 4, 4);
+
+  // Shoulders
+  pc.fillStyle = tunic;
+  pc.fillRect(3, 27, 5, 5);
+  pc.fillStyle = tunic;
+  pc.fillRect(20, 27, 6, 5);
+
+  // Back arm
+  pc.fillStyle = tunicShade;
+  pc.fillRect(1, 30, 5, 5);
+  pc.fillStyle = skinShade;
+  pc.fillRect(0, 35, 4, 9);
+  pc.fillRect(-1, 43, 5, 4);
+
+  // Front arm
+  pc.fillStyle = tunic;
+  pc.fillRect(22, 29, 5, 5);
+  pc.fillStyle = skin;
+  pc.fillRect(23, 34, 5, 9);
+  pc.fillRect(23, 42, 5, 4);
+
+  // Neck
+  pc.fillStyle = skin;
+  pc.fillRect(10, 22, 6, 6);
+
+  // Head
+  pc.fillStyle = skin;
+  pc.fillRect(6, 6, 16, 17);
+  pc.fillRect(8, 21, 12, 3);
+  pc.fillStyle = skinShade;
+  pc.fillRect(6, 8, 3, 13);
+  pc.fillStyle = skinHi;
+  pc.fillRect(16, 14, 3, 4);
+
+  // Hair
+  pc.fillStyle = hairCol;
+  if (isPrincessPreview) {
+    pc.fillRect(5, 3, 17, 6);
+    pc.fillRect(4, 5, 3, 8);
+    pc.fillStyle = lighten(hairCol, 20);
+    pc.fillRect(10, 3, 6, 2);
+    pc.fillStyle = hairCol;
+    pc.fillRect(3, 7, 4, 10);
+    pc.fillRect(2, 9, 3, 12);
+    pc.fillRect(1, 12, 2, 14);
+    pc.fillRect(0, 16, 2, 14);
+    pc.fillRect(20, 7, 3, 8);
+    pc.fillRect(21, 12, 3, 10);
+    pc.fillRect(22, 18, 2, 8);
+    pc.fillStyle = lighten(hairCol, 15);
+    pc.fillRect(0, 28, 2, 2);
+    pc.fillRect(22, 24, 2, 2);
+  } else {
+    pc.fillRect(5, 3, 17, 6);
+    pc.fillRect(4, 5, 3, 8);
+    pc.fillStyle = lighten(hairCol, 15);
+    pc.fillRect(10, 3, 6, 2);
+    pc.fillStyle = hairCol;
+    pc.fillRect(3, 7, 4, 10);
+    pc.fillRect(2, 9, 3, 8);
+    pc.fillRect(1, 12, 2, 6);
+    pc.fillStyle = lighten(hairCol, 10);
+    pc.fillRect(1, 16, 2, 2);
+  }
+
+  // Eyes
+  pc.fillStyle = '#eee';
+  pc.fillRect(16, 12, 4, 3);
+  pc.fillStyle = '#332211';
+  pc.fillRect(17, 12, 3, 3);
+  pc.fillStyle = '#111';
+  pc.fillRect(18, 13, 2, 2);
+  pc.fillStyle = '#fff';
+  pc.fillRect(18, 12, 1, 1);
+  pc.fillStyle = darken(hairCol, 10);
+  pc.fillRect(15, 10, 6, 2);
+
+  // Nose
+  pc.fillStyle = skinShade;
+  pc.fillRect(20, 15, 2, 4);
+
+  // Mouth
+  pc.fillStyle = darken(skin, 25);
+  pc.fillRect(17, 20, 4, 1);
+
+  // Ear
+  pc.fillStyle = skin;
+  pc.fillRect(5, 13, 3, 5);
+
+  pc.restore();
+}
+
+function drawCharPreviews() {
+  drawCharPreview('previewPrince', 'prince');
+  drawCharPreview('previewPrincess', 'princess');
+}
+
+function showCharSelect() {
+  gameState = 'charselect';
+  charSelectIndex = selectedCharacter === 'prince' ? 0 : 1;
+  document.getElementById('startScreen').classList.add('hidden');
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  document.getElementById('winScreen').classList.add('hidden');
+  document.getElementById('charSelectScreen').classList.remove('hidden');
+  updateCharSelectUI();
+  drawCharPreviews();
+}
+
+function updateCharSelectUI() {
+  const princeOpt = document.getElementById('charOptionPrince');
+  const princessOpt = document.getElementById('charOptionPrincess');
+  if (charSelectIndex === 0) {
+    princeOpt.classList.add('selected');
+    princessOpt.classList.remove('selected');
+    selectedCharacter = 'prince';
+  } else {
+    princeOpt.classList.remove('selected');
+    princessOpt.classList.add('selected');
+    selectedCharacter = 'princess';
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.code === 'Enter' || e.code === 'Space') {
+    if (gameState === 'start' || gameState === 'gameover' || gameState === 'win') {
+      showCharSelect();
+    } else if (gameState === 'charselect') {
+      startGame();
+    }
+  }
+  if (gameState === 'charselect') {
+    if (e.code === 'ArrowLeft') {
+      charSelectIndex = 0;
+      updateCharSelectUI();
+    } else if (e.code === 'ArrowRight') {
+      charSelectIndex = 1;
+      updateCharSelectUI();
+    }
+  }
+});
+
+// Desktop click handlers for character selection
+document.getElementById('charOptionPrince').addEventListener('click', () => {
+  if (gameState === 'charselect') {
+    charSelectIndex = 0;
+    updateCharSelectUI();
+  }
+});
+document.getElementById('charOptionPrincess').addEventListener('click', () => {
+  if (gameState === 'charselect') {
+    charSelectIndex = 1;
+    updateCharSelectUI();
+  }
+});
+
+// Draw title logo — pixel-art sword emblem
+function drawLogo() {
+  const cvs = document.getElementById('logoCanvas');
+  const lc = cvs.getContext('2d');
+  const cx = 60, cy = 40;
+
+  // Glow behind sword
+  const glow = lc.createRadialGradient(cx, cy, 4, cx, cy, 50);
+  glow.addColorStop(0, 'rgba(212, 164, 74, 0.25)');
+  glow.addColorStop(0.6, 'rgba(212, 164, 74, 0.06)');
+  glow.addColorStop(1, 'rgba(212, 164, 74, 0)');
+  lc.fillStyle = glow;
+  lc.fillRect(0, 0, 120, 80);
+
+  // ── Main sword (vertical, center) ──
+  // Blade
+  lc.fillStyle = '#c8d0dd';
+  lc.fillRect(cx - 2, 6, 4, 42);
+  // Blade highlight
+  lc.fillStyle = '#e8eef8';
+  lc.fillRect(cx - 2, 6, 1, 42);
+  // Blade shadow
+  lc.fillStyle = '#a0a8b8';
+  lc.fillRect(cx + 1, 6, 1, 42);
+  // Blade tip
+  lc.fillStyle = '#d8e0ee';
+  lc.fillRect(cx - 1, 4, 2, 3);
+  lc.fillRect(cx, 2, 1, 3);
+
+  // Cross guard
+  lc.fillStyle = '#ccaa40';
+  lc.fillRect(cx - 10, 47, 20, 4);
+  // Guard highlight
+  lc.fillStyle = '#eedd66';
+  lc.fillRect(cx - 10, 47, 20, 1);
+  // Guard shadow
+  lc.fillStyle = '#aa8830';
+  lc.fillRect(cx - 10, 50, 20, 1);
+  // Guard ends (ornamental)
+  lc.fillStyle = '#ccaa40';
+  lc.fillRect(cx - 12, 46, 3, 6);
+  lc.fillRect(cx + 9, 46, 3, 6);
+
+  // Grip
+  lc.fillStyle = '#5c3a10';
+  lc.fillRect(cx - 2, 51, 4, 14);
+  // Grip wrap pattern
+  lc.fillStyle = '#7a5020';
+  for (let i = 0; i < 4; i++) {
+    lc.fillRect(cx - 2, 52 + i * 3, 4, 1);
+  }
+
+  // Pommel
+  lc.fillStyle = '#ccaa40';
+  lc.fillRect(cx - 4, 64, 8, 5);
+  lc.fillStyle = '#eedd66';
+  lc.fillRect(cx - 3, 65, 6, 1);
+  // Pommel gem
+  lc.fillStyle = '#cc2222';
+  lc.fillRect(cx - 1, 65, 3, 3);
+  lc.fillStyle = '#ff4444';
+  lc.fillRect(cx, 65, 1, 1);
+
+  // ── Decorative side flourishes ──
+  lc.fillStyle = '#8a7232';
+  // Left flourish
+  lc.fillRect(cx - 20, 50, 8, 1);
+  lc.fillRect(cx - 24, 49, 5, 1);
+  lc.fillRect(cx - 26, 47, 3, 2);
+  lc.fillRect(cx - 27, 44, 2, 4);
+  // Right flourish
+  lc.fillRect(cx + 12, 50, 8, 1);
+  lc.fillRect(cx + 19, 49, 5, 1);
+  lc.fillRect(cx + 23, 47, 3, 2);
+  lc.fillRect(cx + 25, 44, 2, 4);
+}
+
+// Initialize stone pattern and logo then start
+generateStonePattern();
+drawLogo();
+gameLoop();
+</script>
+</body>
+</html>
