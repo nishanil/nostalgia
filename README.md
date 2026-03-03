@@ -1,4 +1,4 @@
-# 🎮 Nostalgia
+# 🎮 Nostalgia Games
 
 A collection of retro browser games — no installs, no dependencies, just pure HTML fun.
 
