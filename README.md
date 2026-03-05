@@ -1,6 +1,6 @@
 # 🎮 Nostalgia Games
 
-A collection of retro browser games — no installs, no dependencies, just pure HTML fun.
+A collection of retro browser games — no installs, no dependencies, just pure HTML fun. Works on phones with touch controls.
 
 **Play now: [nishanil.github.io/nostalgia](https://nishanil.github.io/nostalgia/)**
 
